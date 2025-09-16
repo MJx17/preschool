@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Welcome · Your School Name</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
@@ -24,7 +24,6 @@
             /* or any size you want */
             height: 50% !important;
         }
-
         html {
             scroll-behavior: smooth;
         }
@@ -82,9 +81,6 @@
                         </svg>
                     </div>
                 </div>
-
-
-
             </div>
         </div>
     </section>
@@ -119,11 +115,6 @@
     </div>
   </div>
 </section>
-
-   
-
-
-
     <!-- About -->
     <section id="about" class="min-h-screen flex items-center justify-center bg-[#242424]">
         <div class="max-w-6xl mx-auto text-center px-6">
@@ -141,12 +132,7 @@
     </section>
 
     <!-- Contact -->
-    <section id="contact" class="min-h-screen flex items-center justify-center bg-gray-100">
-        <div class="max-w-6xl mx-auto text-center px-6">
-            <h2 class="text-3xl font-bold mb-6">Contact Us</h2>
-            <p>Email: info@myschool.com | Phone: (123) 456-7890</p>
-        </div>
-    </section>
+    <x-contacts.contact-section />
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script>
@@ -169,5 +155,4 @@
         });
     </script>
 </body>
-
 </html>

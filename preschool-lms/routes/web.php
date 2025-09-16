@@ -3,15 +3,16 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\DashboardController; // make sure this is imported
+use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
-
 Route::get('/attendance', function () {
     return view('attendance');
-});
+})->name('attendance'); // 
+
 
 // ✅ FIXED: dashboard route wrapped properly with middleware
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -26,5 +27,9 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::resource('lessons', LessonController::class);
+
+
+Route::get('/contact', [ContactController::class, 'showForm']);
+Route::post('/contact', [ContactController::class, 'sendEmail'])->name('contact.send');
 
 require __DIR__.'/auth.php';

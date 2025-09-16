@@ -24,8 +24,9 @@
       </div>
       <nav class="mt-4">
         <a href="{{ route('dashboard') }}" class="block px-4 py-2 hover:bg-gray-200">Dashboard</a>
-        <a href="{{ url('/attendance') }}" class="block px-4 py-2 hover:bg-gray-200">Attendance</a>
+        <a href="{{ route('attendance') }}" class="block px-4 py-2 hover:bg-gray-200">Attendance</a>
         <a href="#" class="block px-4 py-2 hover:bg-gray-200">Reports</a>
+         <a href="#" class="block px-4 py-2 hover:bg-gray-200">Lms</a>
         <a href="#" class="block px-4 py-2 hover:bg-gray-200">Settings</a>
       </nav>
     </div>
