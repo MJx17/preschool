@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
@@ -8,7 +9,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-100 ">
     <style>
         /* Remove default Swiper arrow icons */
         .swiper-button-prev,
@@ -24,6 +25,7 @@
             /* or any size you want */
             height: 50% !important;
         }
+
         html {
             scroll-behavior: smooth;
         }
@@ -85,36 +87,36 @@
         </div>
     </section>
 
-<section id="programs" class=" relative z-20">
-  <div class="max-w-6xl mx-auto text-center px-6">
-    <div class="pt-20"></div>
+    <section id="programs" class=" relative z-20">
+        <div class="max-w-6xl mx-auto text-center px-6">
+            <div class="pt-20"></div>
 
 
-    <div class="grid md:grid-cols-3 gap-8">
-      <!-- Card -->
-      <div class="relative">
-        <div
-          class="group bg-white border shadow hover:shadow-lg transition-all overflow-hidden 
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Card -->
+                <div class="relative">
+                    <div
+                        class="group bg-white border shadow hover:shadow-lg transition-all overflow-hidden 
                  absolute bottom-0 left-0 right-0 z-20
                  max-h-20 hover:max-h-96 duration-500 ease-in-out">
-          <!-- Title (always visible) -->
-          <div class="p-6">
-            <h3 class="text-xl font-semibold">Preschool Program</h3>
-          </div>
-          <!-- Hidden Content -->
-          <div class="px-6 pb-6 text-left">
-            <ul class="text-gray-600 list-disc pl-4 space-y-2">
-              <li>Reading & Writing</li>
-              <li>Basic Math</li>
-              <li>Arts & Crafts</li>
-              <li>Music & Movement</li>
-            </ul>
-          </div>
+                        <!-- Title (always visible) -->
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold">Preschool Program</h3>
+                        </div>
+                        <!-- Hidden Content -->
+                        <div class="px-6 pb-6 text-left">
+                            <ul class="text-gray-600 list-disc pl-4 space-y-2">
+                                <li>Reading & Writing</li>
+                                <li>Basic Math</li>
+                                <li>Arts & Crafts</li>
+                                <li>Music & Movement</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
+    </section>
     <!-- About -->
     <section id="about" class="min-h-screen flex items-center justify-center bg-[#242424]">
         <div class="max-w-6xl mx-auto text-center px-6">
@@ -134,25 +136,28 @@
     <!-- Contact -->
     <x-contacts.contact-section />
 
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            new Swiper('.swiper', {
-                loop: true,
-                autoplay: {
-                    delay: 5000,
-                    disableOnInteraction: false
-                },
-                pagination: {
-                    el: '.swiper-pagination',
-                    clickable: true
-                },
-                navigation: {
-                    nextEl: '.swiper-button-next',
-                    prevEl: '.swiper-button-prev'
-                },
+    <x-footer/>
+
+        <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                new Swiper('.swiper', {
+                    loop: true,
+                    autoplay: {
+                        delay: 5000,
+                        disableOnInteraction: false
+                    },
+                    pagination: {
+                        el: '.swiper-pagination',
+                        clickable: true
+                    },
+                    navigation: {
+                        nextEl: '.swiper-button-next',
+                        prevEl: '.swiper-button-prev'
+                    },
+                });
             });
-        });
-    </script>
+        </script>
 </body>
+
 </html>
