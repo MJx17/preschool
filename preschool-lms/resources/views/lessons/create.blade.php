@@ -1,56 +1,53 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            ➕ Add Lesson
-        </h2>
-    </x-slot>
+    <div class="max-w-4xl mx-auto py-8">
+        <h1 class="text-2xl font-bold mb-6">Add New Lesson</h1>
 
-    <div class="py-6">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-
-                    <form action="{{ route('lessons.store') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-
-                        <div class="mb-4">
-                            <label class="block font-medium mb-2">Title</label>
-                            <input type="text" name="title" class="w-full border p-2 rounded" required>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block font-medium mb-2">Description</label>
-                            <textarea name="description" class="w-full border p-2 rounded"></textarea>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block font-medium mb-2">Upload File</label>
-                            <input type="file" name="file" class="w-full">
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block font-medium mb-2">Video URL</label>
-                            <input type="text" name="video_url" class="w-full border p-2 rounded">
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block font-medium mb-2">Type</label>
-                            <select name="type" class="w-full border p-2 rounded">
-                                <option value="lecture">Lecture</option>
-                                <option value="activity">Activity</option>
-                                <option value="quiz">Quiz</option>
-                            </select>
-                        </div>
-
-                        <div class="flex justify-end">
-                            <button type="submit" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
-                                Save
-                            </button>
-                        </div>
-                    </form>
-
-                </div>
+        {{-- Show validation errors --}}
+        @if ($errors->any())
+            <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
+                <ul class="list-disc list-inside">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
-        </div>
+        @endif
+
+        <form action="{{ route('lessons.store') }}" method="POST" class="space-y-4">
+            @csrf
+
+            <div>
+                <label class="block font-semibold">Title</label>
+                <input type="text" name="title" value="{{ old('title') }}"
+                       class="w-full border rounded-md p-2" required>
+            </div>
+
+            <div>
+                <label class="block font-semibold">Description</label>
+                <textarea name="description" class="w-full border rounded-md p-2">{{ old('description') }}</textarea>
+            </div>
+
+            <div>
+                <label class="block font-semibold">Image URL</label>
+                <input type="url" name="image_url" value="{{ old('image_url') }}"
+                       class="w-full border rounded-md p-2">
+            </div>
+
+            <div>
+                <label class="block font-semibold">Video URL</label>
+                <input type="url" name="video_url" value="{{ old('video_url') }}"
+                       class="w-full border rounded-md p-2">
+            </div>
+
+            <div>
+                <label class="block font-semibold">Document URL</label>
+                <input type="url" name="document_url" value="{{ old('document_url') }}"
+                       class="w-full border rounded-md p-2">
+            </div>
+
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md">
+                Save Lesson
+            </button>
+        </form>
     </div>
 </x-app-layout>

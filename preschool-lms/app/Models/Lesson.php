@@ -6,17 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class Lesson extends Model
 {
+    //    protected $fillable = [
+    //         'title',
+    //         'description',
+    //         'file_path',
+    //         'video_path',
+    //         'image_path',
+
+    //     ];
     protected $fillable = [
         'title',
         'description',
-        'file_path',
+        'image_url',
         'video_url',
-        'type',
-        'teacher_id',
+        'document_url',
     ];
-
-    public function teacher()
+    public function quizzes()
     {
-        return $this->belongsTo(Teacher::class);
+        return $this->hasMany(Quiz::class);
     }
 }

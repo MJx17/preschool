@@ -14,12 +14,23 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('username')->unique(); // Add username column with unique constraint
+            $table->string('email')->unique(); // Email field with unique constraint
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
+            
+            // Nullable foreign key for branch_id
+        
+            
+            // Nullable foreign key for role_id, with cascading delete option
+            $table->foreignId('role_id')->nullable()->constrained('roles')->onDelete('set null');
+            
+            // Add status field with default value 'pending'
+            $table->string('status')->default('pending');
         });
+        
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
