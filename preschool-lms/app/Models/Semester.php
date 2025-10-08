@@ -12,39 +12,21 @@ class Semester extends Model
     protected $table = 'semesters';
 
     protected $fillable = [
-        'academic_year',
-        'semester',      // '1st', '2nd', 'Summer'
+        'semester',   // now the full string, e.g., "First Semester 2025-2026"
         'start_date',
         'end_date',
-        'status',        // 'upcoming', 'active', 'closed'
+        'status',
     ];
 
     public $timestamps = true;
 
     /**
-     * Accessor: full readable semester string
-     * Example: "First Semester - 2025-2026"
+     * Accessor for dropdown display label
+     * Example: "First Semester 2025-2026 (Active)"
      */
-    public function getFullSemesterAttribute()
+    public function getDropdownLabelAttribute(): string
     {
-        return "{$this->semester_text} - {$this->academic_year}";
-    }
-
-    /**
-     * Accessor: formatted semester name
-     * Example: '1st' → 'First Semester'
-     */
-    public function getSemesterTextAttribute()
-    {
-        $semesterMapping = [
-            '1st'    => 'First Semester',
-            '2nd'    => 'Second Semester',
-            '3rd'    => 'Third Semester',
-            '4th'    => 'Fourth Semester',
-            'Summer' => 'Summer Term',
-        ];
-
-        return $semesterMapping[$this->semester] ?? $this->semester;
+        return "{$this->semester} (" . ucfirst($this->status) . ")";
     }
 
     /**
@@ -55,8 +37,23 @@ class Semester extends Model
         return $this->hasMany(Subject::class);
     }
 
-    public function getDropdownLabelAttribute()
+    /**
+     * Check if an active semester with the same name already exists
+     */
+    public static function isActiveExists($semester, $excludeId = null): bool
     {
-        return "{$this->semesterText} - AY {$this->academic_year} (" . ucfirst($this->status) . ")";
+        $query = self::where('semester', $semester)
+            ->where('status', 'active');
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        return $query->exists();
+    }
+
+    public function getStatusLabelAttribute()
+    {
+        return ucfirst($this->status);
     }
 }

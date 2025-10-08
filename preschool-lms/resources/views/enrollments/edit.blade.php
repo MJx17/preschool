@@ -170,22 +170,6 @@
 
                 </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                 <!-- Submit & Cancel Buttons -->
                 <div class="col-span-1 md:col-span-2 flex justify-end gap-4 mt-6">
                     <button type="submit"
@@ -199,26 +183,9 @@
                 </div>
 
 
-
-
-
-
-
-
-
             </form>
         </div>
     </div>
-
-
-
-
-
-
-
-
-
-
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const courseSelect = document.querySelector('select[name="course_id"]');

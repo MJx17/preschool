@@ -1,184 +1,85 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Create New Subject') }}
         </h2>
     </x-slot>
 
-    <div class="py-10 flex justify-center">
-        <div class="max-w-3xl w-full bg-white shadow-md rounded-xl p-6">
+    <div class="py-6">
+        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white shadow-sm sm:rounded-lg p-6">
 
-            <form method="POST" action="{{ route('subjects.store') }}">
-               
-                @csrf
+                @if ($errors->any())
+                    <div class="mb-4 text-red-600">
+                        <strong>Whoops! Something went wrong.</strong>
+                        <ul class="list-disc list-inside">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form method="POST" action="{{ route('subjects.store') }}">
+                    @csrf
+
                     <!-- Subject Name -->
-                    <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700">Subject Name</label>
-                        <input type="text" name="name" id="name" 
-                            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-                            value="{{ old('name') }}" required>
+                    <div class="mb-4">
+                        <label for="name" class="block font-medium text-sm text-gray-700">Subject Name</label>
+                        <input id="name" name="name" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" value="{{ old('name') }}" required>
                     </div>
 
                     <!-- Subject Code -->
-                    <div>
-                        <label for="code" class="block text-sm font-medium text-gray-700">Subject Code</label>
-                        <input type="text" name="code" id="code"
-                            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-                            value="{{ old('code') }}" required>
+                    <div class="mb-4">
+                        <label for="code" class="block font-medium text-sm text-gray-700">Subject Code</label>
+                        <input id="code" name="code" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" value="{{ old('code') }}" required>
                     </div>
 
-                    <div>
-                        <label for="room" class="block text-sm font-medium text-gray-700">Room</label>
-                        <input type="text" name="room" id="room"
-                            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-                            value="{{ old('room') }}" required>
-                    </div>
-
-
-                    <div>
-                        <label for="block" class="block text-sm font-medium text-gray-700">block</label>
-                        <input type="text" name="block" id="block"
-                            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-                            value="{{ old('block') }}" required>
-                    </div>
-
-                    <!-- Semester & Year Level -->
-                    <div>
-                        <label for="semester_id" class="block text-sm font-medium text-gray-700">Semester</label>
-                        <select name="semester_id" id="semester_id"
-                            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300" required>
-                            <option value="">Select Semester</option>
-                            @foreach($semesters as $semester)
-                                <option value="{{ $semester->id }}" {{ old('semester_id') == $semester->id ? 'selected' : '' }}>
-                                    {{ $semester->semester }}
-                                </option>
-                            @endforeach
+                    <!-- Grade Level -->
+                    <div class="mb-4">
+                        <label for="grade_level" class="block font-medium text-sm text-gray-700">Grade Level</label>
+                        <select id="grade_level" name="grade_level" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                            <option value="">-- Select Grade Level --</option>
+                            <option value="nursery">Nursery</option>
+                            <option value="kinder">Kinder</option>
+                            <option value="grade_1">Grade 1</option>
+                            <option value="grade_2">Grade 2</option>
+                            <option value="grade_3">Grade 3</option>
                         </select>
                     </div>
 
-                    <div>
-                        <label for="year_level" class="block text-sm font-medium text-gray-700">Year Level</label>
-                        <select id="year_level" name="year_level"
-                            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300" required>
-                            <option value="" disabled selected>Select Year Level</option>
-                            <option value="first_year">First Year</option>
-                            <option value="second_year">Second Year</option>
-                            <option value="third_year">Third Year</option>
-                            <option value="fourth_year">Fourth Year</option>
-                            <option value="fifth_year">Fifth Year</option>
-                        </select>
-                    </div>
-
-                        <!-- Prerequisite -->
-                        <div>
-                        <label for="prerequisite_id" class="block text-sm font-medium text-gray-700">Prerequisite</label>
-                        <select name="prerequisite_id" id="prerequisite_id"
-                            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300">
-                            <option value="">None</option>
-                            @foreach($subjects as $subject)
-                                <option value="{{ $subject->id }}" {{ old('prerequisite_id') == $subject->id ? 'selected' : '' }}>
+                    <!-- Prerequisite -->
+                    <div class="mb-4">
+                        <label for="prerequisite_id" class="block font-medium text-sm text-gray-700">Prerequisite (optional)</label>
+                        <select id="prerequisite_id" name="prerequisite_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                            <option value="">-- None --</option>
+                            @foreach ($subjects as $subject)
+                                <option value="{{ $subject->id }}" {{ old('prerequisite_id')==$subject->id ? 'selected' : '' }}>
                                     {{ $subject->name }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
-                    <!-- Professor -->
-                    <div>
-                        <label for="professor_id" class="block text-sm font-medium text-gray-700">Professor</label>
-                        <select name="professor_id" id="professor_id"
-                            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300" required>
-                            <option value="">Select Professor</option>
-                            @foreach($professors as $professor)
-                                <option value="{{ $professor->id }}" {{ old('professor_id') == $professor->id ? 'selected' : '' }}>
-                                    {{ $professor->user->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                    <!-- Fee -->
+                    <div class="mb-4">
+                        <label for="fee" class="block font-medium text-sm text-gray-700">Fee</label>
+                        <input id="fee" name="fee" type="number" step="0.01" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" value="{{ old('fee') }}" required>
                     </div>
 
-
-                    <!-- Fee, Units, Start Time, End Time in One Row -->
-                    <div class="grid grid-cols-4 gap-4 col-span-2">
-                        <div>
-                            <label for="fee" class="block text-sm font-medium text-gray-700">Fee</label>
-                            <input type="number" name="fee" id="fee"
-                                class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-                                value="{{ old('fee') }}" required>
-                        </div>
-
-                        <div>
-                            <label for="units" class="block text-sm font-medium text-gray-700">Units</label>
-                            <input type="number" name="units" id="units"
-                                class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-                                value="{{ old('units') }}" step="0.1" min="0.1" max="10" required>
-                        </div>
-
-                        <div>
-                            <label for="start_time" class="block text-sm font-medium text-gray-700">Start Time</label>
-                            <input type="time" name="start_time" id="start_time"
-                                class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300" required>
-                        </div>
-
-                        <div>
-                            <label for="end_time" class="block text-sm font-medium text-gray-700">End Time</label>
-                            <input type="time" name="end_time" id="end_time"
-                                class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300" required>
-                        </div>
+                    <!-- Units -->
+                    <div class="mb-4">
+                        <label for="units" class="block font-medium text-sm text-gray-700">Units</label>
+                        <input id="units" name="units" type="number" step="0.1" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" value="{{ old('units') }}" required>
                     </div>
 
-                
-           
+                    <div class="flex items-center gap-4">
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Create Subject</button>
+                        <a href="{{ route('subjects.index') }}" class="text-gray-600 hover:underline">Cancel</a>
                     </div>
-                  <!-- Days & Courses in a Responsive Grid -->
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-2 py-5">
+                </form>
 
-
-                  <div>
-                        <label for="course_ids" class="block text-sm font-medium text-gray-700">Courses</label>
-                        <div class="grid grid-cols-1 gap-2 mt-2">
-                            @foreach($courses as $course)
-                                <label class="flex items-center space-x-2">
-                                    <input type="checkbox" name="course_ids[]" value="{{ $course->id }}" class="rounded border-gray-300">
-                                    <span class="text-gray-700">{{ $course->course_name }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
-                    <!-- Days -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Days</label>
-                        <div class="flex flex-col space-y-2 mt-2">
-                            @foreach(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $day)
-                                <label class="flex items-center space-x-2">
-                                    <input type="checkbox" name="days[]" value="{{ $day }}" class="rounded border-gray-300">
-                                    <span class="text-gray-700">{{ $day }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!-- Courses -->
-               
-                </div>
-
-
-
-            
-
-                <!-- Submit Button -->
-                <div class="mt-6 flex justify-end gap-2">
-                    <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
-                        Create
-                    </button>
-                    <a href="{{ route('subjects.index') }}" 
-                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700">
-                    Cancel
-                </a>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </x-app-layout>

@@ -15,20 +15,15 @@ class CreateEnrollmentsTable extends Migration
     {
         Schema::create('enrollments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('student_id')->constrained('students')->onDelete('cascade'); // Links to students table
-            $table->foreignId('semester_id')->nullable()->constrained('semesters')->onDelete('set null'); // The semester for the enrollment
+            $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
+            $table->foreignId('semester_id')->nullable()->constrained('semesters')->onDelete('set null');
             $table->enum('grade_level', [
-                'nursery',
-                'kinder',
-                'grade_1',
-                'grade_2',
-                'grade_3',
+                'nursery','kinder','grade_1','grade_2','grade_3'
             ]);
-            $table->json('subject_ids')->nullable(); // Store subject ids as a JSON array
-            $table->timestamps(); // To track creation and update times
-
             $table->enum('category', ['new', 'old', 'shifter'])->nullable();
+            $table->timestamps();
         });
+        
     }
 
     /**

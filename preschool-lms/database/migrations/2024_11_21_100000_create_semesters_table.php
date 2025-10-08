@@ -14,17 +14,13 @@ class CreateSemestersTable extends Migration
         Schema::create('semesters', function (Blueprint $table) {
             $table->id();
 
-            // e.g., "2025-2026"
-            $table->string('academic_year');  
+            // Single field storing both semester + academic year, e.g. "1st Semester 2025-2026"
+            $table->string('semester')->unique();
 
-            // Restrict to known term codes to keep format consistent
-            $table->enum('semester', ['1st', '2nd', 'Summer']); 
-            // if you’re absolutely sure you’ll never have Summer, remove it
-
-            $table->date('start_date'); 
+            $table->date('start_date');
             $table->date('end_date');
 
-            // Let admin control the state of the semester (not just dates)
+            // Control semester status
             $table->enum('status', ['upcoming', 'active', 'closed'])->default('upcoming');
 
             $table->timestamps();

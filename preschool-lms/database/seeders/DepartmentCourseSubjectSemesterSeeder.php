@@ -4,15 +4,13 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Department;
-use App\Models\Course;
-use App\Models\Subject;
-use App\Models\Enrollment;
 use App\Models\Semester;
-use App\Models\Student;
 use App\Models\Teacher;
-use App\Models\CourseSubject;
-use App\Models\StudentSubject;
-use App\Models\TeacherSubject;
+use App\Models\Subject;
+use App\Models\SubjectOffering;
+use App\Models\Student;
+use App\Models\Enrollment;
+use App\Models\EnrollmentSubjectOffering;
 use App\Models\Fee;
 use App\Models\Payment;
 use App\Models\FinancialInformation;
@@ -20,634 +18,191 @@ use Carbon\Carbon;
 
 class DepartmentCourseSubjectSemesterSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Step 1: Create Departments
+        /** -----------------------------
+         * 1. Departments
+         * ----------------------------- */
         $departments = [
-            'Mathematics',
-            'Science',
-            'English',
-            'Filipino',
-            'Araling Panlipunan',
-            'MAPEH', // Music, Arts, PE, Health
-            'TLE',   // Technology and Livelihood Education
-            'Values Education'
+            'Mathematics','Science','English','Filipino',
+            'Araling Panlipunan','MAPEH','TLE','Values Education'
         ];
-
-        foreach ($departments as $departmentName) {
-            Department::create(['name' => $departmentName]);
+        foreach ($departments as $name) {
+            Department::firstOrCreate(['name' => $name]);
         }
 
-
-
-        // Step 3: Create Semesters
-        $semester1 = Semester::create([
-            'academic_year' => '2022-2023',
-            'semester' => '1st',
-            'start_date' => Carbon::parse('2022-08-01'),
-            'end_date' => Carbon::parse('2022-12-15'),
-            'status' => 'closed',
-        ]);
-
-         $semester2 = Semester::create([
-            'academic_year' => '2022-2023',
-            'semester' => '2nd',
-            'start_date' => Carbon::parse('2023-01-10'),
-            'end_date' => Carbon::parse('2023-05-15'),
-            'status' => 'active',
-        ]);
-
-        $semester3 = Semester::create([
-            'academic_year' => '2023-2024',
-            'semester' => '1st',
-            'start_date' => Carbon::parse('2023-08-01'),
-            'end_date' => Carbon::parse('2023-12-15'),
-            'status' => 'upcoming',
-        ]);
-
-
-
-        // Fetch Teachers
-        $teacher1 = Teacher::find(1);
-        $teacher2 = Teacher::find(2);
-        $teacher3 = Teacher::find(3);
-        $teacher4 = Teacher::find(4);
-        $teacher5 = Teacher::find(5);
-        $teacher6 = Teacher::find(6);
-        $teacher7 = Teacher::find(7);
-        $teacher8 = Teacher::find(8);
-        $teacher9 = Teacher::find(9);
-
-
-        // Step 4: Create Subjects
-
-        $nurserySubjects = [
+        /** -----------------------------
+         * 2. Semesters
+         * ----------------------------- */
+        Semester::updateOrCreate(
+            ['semester' => '1st Semester 2024-2025'],
             [
-                'name' => 'Early Literacy and Language',
-                'code' => 'NUR-ELL',
-                'grade_level' => 'nursery',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Room 1',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher1->id,
-                'days' => json_encode(['Monday', 'Wednesday']),
-                'start_time' => '08:00',
-                'end_time' => '09:00',
-            ],
+                'start_date' => Carbon::parse('2024-08-01')->toDateString(),
+                'end_date'   => Carbon::parse('2024-12-15')->toDateString(),
+                'status'     => 'closed',
+            ]
+        );
+        
+        // Active
+        Semester::updateOrCreate(
+            ['semester' => '1st Semester 2025-2026'],
             [
-                'name' => 'Early Numeracy and Math Readiness',
-                'code' => 'NUR-ENM',
-                'grade_level' => 'nursery',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Room 1',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher2->id,
-                'days' => json_encode(['Monday', 'Wednesday']),
-                'start_time' => '09:15',
-                'end_time' => '10:15',
-            ],
+                'start_date' => Carbon::parse('2025-08-01')->toDateString(),
+                'end_date'   => Carbon::parse('2025-12-15')->toDateString(),
+                'status'     => 'active',
+            ]
+        );
+        
+        // Upcoming
+        Semester::updateOrCreate(
+            ['semester' => '1st Semester 2026-2027'],
             [
-                'name' => 'Creative Play and Arts',
-                'code' => 'NUR-CPA',
-                'grade_level' => 'nursery',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Room 1',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher3->id,
-                'days' => json_encode(['Tuesday', 'Thursday']),
-                'start_time' => '08:00',
-                'end_time' => '09:00',
-            ],
-            [
-                'name' => 'Music, Movement and PE',
-                'code' => 'NUR-MMP',
-                'grade_level' => 'nursery',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Room 1',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher4->id,
-                'days' => json_encode(['Tuesday', 'Thursday']),
-                'start_time' => '09:15',
-                'end_time' => '10:15',
-            ],
-            [
-                'name' => 'Values Formation / Good Manners',
-                'code' => 'NUR-VF',
-                'grade_level' => 'nursery',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Room 1',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher5->id,
-                'days' => json_encode(['Friday']),
-                'start_time' => '08:00',
-                'end_time' => '09:30',
-            ],
+                'start_date' => Carbon::parse('2026-08-01')->toDateString(),
+                'end_date'   => Carbon::parse('2026-12-15')->toDateString(),
+                'status'     => 'upcoming',
+            ]
+        );
+
+        $activeSemester = Semester::where('status','active')->first();
+
+        /** -----------------------------
+         * 3. Subjects
+         * ----------------------------- */
+        $subjects = [
+            ['name'=>'Early Literacy and Language','code'=>'NUR-ELL','grade_level'=>'nursery','fee'=>0,'units'=>0],
+            ['name'=>'Early Numeracy and Math Readiness','code'=>'NUR-ENM','grade_level'=>'nursery','fee'=>0,'units'=>0],
+            ['name'=>'Reading Readiness','code'=>'KIN-RR','grade_level'=>'kinder','fee'=>0,'units'=>0],
+            ['name'=>'Values Formation / Good Manners','code'=>'KIN-VF','grade_level'=>'kinder','fee'=>0,'units'=>0],
+            ['name'=>'Mother Tongue','code'=>'G1-MT','grade_level'=>'grade_1','fee'=>0,'units'=>0],
+            ['name'=>'Mathematics 1','code'=>'G1-MATH','grade_level'=>'grade_1','fee'=>0,'units'=>0],
+            ['name'=>'Mother Tongue','code'=>'G2-MT','grade_level'=>'grade_2','fee'=>0,'units'=>0],
+            ['name'=>'Music, Arts, PE, and Health','code'=>'G2-MAPEH','grade_level'=>'grade_2','fee'=>0,'units'=>0],
+            ['name'=>'Mother Tongue','code'=>'G3-MT','grade_level'=>'grade_3','fee'=>0,'units'=>0],
+            ['name'=>'Mathematics 3','code'=>'G3-MATH','grade_level'=>'grade_3','fee'=>0,'units'=>0],
         ];
-
-        // Create nursery subjects
-        foreach ($nurserySubjects as $subject) {
-            Subject::create($subject);
+        foreach ($subjects as $subjectData) {
+            Subject::firstOrCreate(['code'=>$subjectData['code']], $subjectData);
         }
 
-        $preKinderSubjects = [
-            [
-                'name' => 'Language and Pre-Reading Skills',
-                'code' => 'PK-LPR',
-                'grade_level' => 'kinder', // enum value
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Room 2',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher1->id,
-                'days' => json_encode(['Monday', 'Wednesday']),
-                'start_time' => '08:00',
-                'end_time' => '09:00',
-            ],
-            [
-                'name' => 'Numbers and Pre-Math Skills',
-                'code' => 'PK-NPM',
-                'grade_level' => 'kinder',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Room 2',
-                'semester_id' =>  $semester2->id,
-                'teacher_id' => $teacher2->id,
-                'days' => json_encode(['Monday', 'Wednesday']),
-                'start_time' => '09:15',
-                'end_time' => '10:15',
-            ],
-            [
-                'name' => 'Creative Arts and Play',
-                'code' => 'PK-CAP',
-                'grade_level' => 'kinder',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Room 2',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher3->id,
-                'days' => json_encode(['Tuesday', 'Thursday']),
-                'start_time' => '08:00',
-                'end_time' => '09:00',
-            ],
-            [
-                'name' => 'Music, Movement and Gross Motor Skills',
-                'code' => 'PK-MMG',
-                'grade_level' => 'kinder',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Room 2',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher4->id,
-                'days' => json_encode(['Tuesday', 'Thursday']),
-                'start_time' => '09:15',
-                'end_time' => '10:15',
-            ],
-            [
-                'name' => 'Values Formation / Good Manners',
-                'code' => 'PK-VF',
-                'grade_level' => 'kinder',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Room 2',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher5->id,
-                'days' => json_encode(['Friday']),
-                'start_time' => '08:00',
-                'end_time' => '09:30',
-            ],
-        ];
-
-        // Create Pre-Kinder subjects
-        foreach ($preKinderSubjects as $subject) {
-            Subject::create($subject);
+        /** -----------------------------
+         * 4. Subject Offerings for active semester
+         * ----------------------------- */
+        $teacher = Teacher::first(); // pick first teacher for demo
+        foreach (Subject::all() as $subject) {
+            SubjectOffering::firstOrCreate(
+                [
+                    'subject_id'=>$subject->id,
+                    'semester_id'=>$activeSemester->id,
+                ],
+                [
+                    'teacher_id'=>$teacher?->id,
+                    'block'=>'A',
+                    'room'=>'101',
+                    'days'=>json_encode(['Monday','Wednesday']),
+                    'start_time'=>'08:00:00',
+                    'end_time'=>'09:00:00',
+                ]
+            );
         }
 
-        $grade1Subjects = [
-            [
-                'name' => 'Mother Tongue',
-                'code' => 'G1-MT',
-                'grade_level' => 'grade_1', // enum value
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade1-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher1->id,
-                'days' => json_encode(['Monday', 'Wednesday']),
-                'start_time' => '08:00',
-                'end_time' => '09:00',
-            ],
-            [
-                'name' => 'Filipino',
-                'code' => 'G1-FIL',
-                'grade_level' => 'grade_1',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade1-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher2->id,
-                'days' => json_encode(['Monday', 'Wednesday']),
-                'start_time' => '09:15',
-                'end_time' => '10:15',
-            ],
-            [
-                'name' => 'English',
-                'code' => 'G1-ENG',
-                'grade_level' => 'grade_1',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade1-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher3->id,
-                'days' => json_encode(['Tuesday', 'Thursday']),
-                'start_time' => '08:00',
-                'end_time' => '09:00',
-            ],
-            [
-                'name' => 'Mathematics',
-                'code' => 'G1-MATH',
-                'grade_level' => 'grade_1',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade1-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher4->id,
-                'days' => json_encode(['Tuesday', 'Thursday']),
-                'start_time' => '09:15',
-                'end_time' => '10:15',
-            ],
-            [
-                'name' => 'Araling Panlipunan',
-                'code' => 'G1-AP',
-                'grade_level' => 'grade_1',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade1-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher5->id,
-                'days' => json_encode(['Wednesday', 'Friday']),
-                'start_time' => '10:30',
-                'end_time' => '11:15',
-            ],
-            [
-                'name' => 'Edukasyon sa Pagpapakatao (EsP)',
-                'code' => 'G1-ESP',
-                'grade_level' => 'grade_1',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade1-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher6->id,
-                'days' => json_encode(['Friday']),
-                'start_time' => '11:30',
-                'end_time' => '12:00',
-            ],
-            [
-                'name' => 'Music, Arts, PE, and Health (MAPEH)',
-                'code' => 'G1-MAPEH',
-                'grade_level' => 'grade_1',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade1-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher7->id,
-                'days' => json_encode(['Monday', 'Wednesday']),
-                'start_time' => '13:00',
-                'end_time' => '14:00',
-            ],
-        ];
-
-        foreach ($grade1Subjects as $subject) {
-            Subject::create($subject);
-        }
-
-
-        $grade2Subjects = [
-            [
-                'name' => 'Mother Tongue',
-                'code' => 'G2-MT',
-                'grade_level' => 'grade_2', // enum value
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade2-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher1->id,
-                'days' => json_encode(['Monday', 'Wednesday']),
-                'start_time' => '08:00',
-                'end_time' => '09:00',
-            ],
-            [
-                'name' => 'Filipino',
-                'code' => 'G2-FIL',
-                'grade_level' => 'grade_2',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade2-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher2->id,
-                'days' => json_encode(['Monday', 'Wednesday']),
-                'start_time' => '09:15',
-                'end_time' => '10:15',
-            ],
-            [
-                'name' => 'English',
-                'code' => 'G2-ENG',
-                'grade_level' => 'grade_2',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade2-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher3->id,
-                'days' => json_encode(['Tuesday', 'Thursday']),
-                'start_time' => '08:00',
-                'end_time' => '09:00',
-            ],
-            [
-                'name' => 'Mathematics',
-                'code' => 'G2-MATH',
-                'grade_level' => 'grade_2',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade2-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher4->id,
-                'days' => json_encode(['Tuesday', 'Thursday']),
-                'start_time' => '09:15',
-                'end_time' => '10:15',
-            ],
-            [
-                'name' => 'Araling Panlipunan',
-                'code' => 'G2-AP',
-                'grade_level' => 'grade_2',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade2-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher5->id,
-                'days' => json_encode(['Wednesday', 'Friday']),
-                'start_time' => '10:30',
-                'end_time' => '11:15',
-            ],
-            [
-                'name' => 'Edukasyon sa Pagpapakatao (EsP)',
-                'code' => 'G2-ESP',
-                'grade_level' => 'grade_2',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade2-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher6->id,
-                'days' => json_encode(['Friday']),
-                'start_time' => '11:30',
-                'end_time' => '12:00',
-            ],
-            [
-                'name' => 'Music, Arts, PE, and Health (MAPEH)',
-                'code' => 'G2-MAPEH',
-                'grade_level' => 'grade_2',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade2-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher7->id,
-                'days' => json_encode(['Monday', 'Wednesday']),
-                'start_time' => '13:00',
-                'end_time' => '14:00',
-            ],
-        ];
-
-        foreach ($grade2Subjects as $subject) {
-            Subject::create($subject);
-        }
-
-        // Grade 3 subjects
-        $grade3Subjects = [
-            [
-                'name' => 'Mother Tongue',
-                'code' => 'G3-MT',
-                'grade_level' => 'grade_3', // enum value
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade3-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher1->id,
-                'days' => json_encode(['Monday', 'Wednesday']),
-                'start_time' => '08:00',
-                'end_time' => '09:00',
-            ],
-            [
-                'name' => 'Filipino',
-                'code' => 'G3-FIL',
-                'grade_level' => 'grade_3',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade3-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher2->id,
-                'days' => json_encode(['Monday', 'Wednesday']),
-                'start_time' => '09:15',
-                'end_time' => '10:15',
-            ],
-            [
-                'name' => 'English',
-                'code' => 'G3-ENG',
-                'grade_level' => 'grade_3',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade3-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher3->id,
-                'days' => json_encode(['Tuesday', 'Thursday']),
-                'start_time' => '08:00',
-                'end_time' => '09:00',
-            ],
-            [
-                'name' => 'Mathematics',
-                'code' => 'G3-MATH',
-                'grade_level' => 'grade_3',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade3-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher4->id,
-                'days' => json_encode(['Tuesday', 'Thursday']),
-                'start_time' => '09:15',
-                'end_time' => '10:15',
-            ],
-            [
-                'name' => 'Araling Panlipunan',
-                'code' => 'G3-AP',
-                'grade_level' => 'grade_3',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade3-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher5->id,
-                'days' => json_encode(['Wednesday', 'Friday']),
-                'start_time' => '10:30',
-                'end_time' => '11:15',
-            ],
-            [
-                'name' => 'Edukasyon sa Pagpapakatao (EsP)',
-                'code' => 'G3-ESP',
-                'grade_level' => 'grade_3',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade3-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher6->id,
-                'days' => json_encode(['Friday']),
-                'start_time' => '11:30',
-                'end_time' => '12:00',
-            ],
-            [
-                'name' => 'Music, Arts, PE, and Health (MAPEH)',
-                'code' => 'G3-MAPEH',
-                'grade_level' => 'grade_3',
-                'fee' => 0,
-                'units' => 0,
-                'room' => 'Grade3-Room',
-                'semester_id' =>   $semester2->id,
-                'teacher_id' => $teacher7->id,
-                'days' => json_encode(['Monday', 'Wednesday']),
-                'start_time' => '13:00',
-                'end_time' => '14:00',
-            ],
-        ];
-
-        foreach ($grade3Subjects as $subject) {
-            Subject::create($subject);
-        }
-
-
-        // Helper function for subjects
-        function getSubjects($gradeLevel, $semesterId)
-        {
-            return Subject::where('grade_level', $gradeLevel)
-                ->where('semester_id', $semesterId)
-                ->pluck('id')
-                ->toArray();
-        }
-
-        // Students
+        /** -----------------------------
+         * 5. Enroll students
+         * ----------------------------- */
         $student1 = Student::find(1);
         $student2 = Student::find(2);
 
-        // Ensure semester exists
-        $semester = Semester::find(1);
-
-        if (!$semester) {
-            $this->command->error("Semester not found.");
-            return;
-        }
-
-        // Enroll Students
         if ($student1) {
-            $subjects = getSubjects('grade_1', $semester->id);
-            $this->enrollStudent($student1, 'grade_1', $semester->id, $subjects);
+            $ids = $this->getSubjectOfferings('grade_1', $activeSemester->id);
+            $this->enrollStudent($student1, 'grade_1', $activeSemester->id, $ids);
         }
-
         if ($student2) {
-            $subjects = getSubjects('grade_2', $semester->id);
-            $this->enrollStudent($student2, 'grade_2', $semester->id, $subjects);
+            $ids = $this->getSubjectOfferings('grade_2', $activeSemester->id);
+            $this->enrollStudent($student2, 'grade_2', $activeSemester->id, $ids);
         }
 
-        $this->command->info('Students enrolled successfully!');
+        $this->command->info('Departments, subjects, offerings & student enrollments seeded!');
     }
 
-
-    private function enrollStudent($student, $gradeLevel, $semesterId, $subjectIds)
+    private function getSubjectOfferings($gradeLevel, $semesterId): array
     {
-        // Step 1: Create enrollment (no course_id)
-        $enrollment = Enrollment::updateOrCreate(
-            [
-                'student_id'  => $student->id,
-                'grade_level' => $gradeLevel,
-                'semester_id' => $semesterId,
-                'category'    => 'new',
-            ],
-            ['subject_ids' => json_encode($subjectIds)]
-        );
+        return SubjectOffering::where('semester_id',$semesterId)
+            ->whereHas('subject', fn($q)=>$q->where('grade_level',$gradeLevel))
+            ->pluck('id')
+            ->toArray();
+    }
 
-        // Step 2: Update student's status
-        $student->status = 'enrolled';
+    private function enrollStudent($student,$gradeLevel,$semesterId,$subjectOfferingIds): void
+    {
+        // enrollment
+        $enrollment = Enrollment::updateOrCreate([
+            'student_id'=>$student->id,
+            'grade_level'=>$gradeLevel,
+            'semester_id'=>$semesterId,
+            'category'=>'new',
+        ]);
+
+        $student->status='enrolled';
         $student->save();
 
-        // Step 3: Assign subjects to Student
-        foreach ($subjectIds as $subjectId) {
-            StudentSubject::updateOrCreate([
-                'student_id'    => $student->id,
-                'subject_id'    => $subjectId,
-                'enrollment_id' => $enrollment->id,
-            ], [
-                'status' => 'enrolled',
-                'grade'  => null,
-            ]);
+        // pivot offerings
+        foreach ($subjectOfferingIds as $offeringId) {
+            EnrollmentSubjectOffering::updateOrCreate(
+                [
+                    'enrollment_id'=>$enrollment->id,
+                    'subject_offering_id'=>$offeringId,
+                ],
+                ['status'=>'enrolled','grade'=>null]
+            );
         }
 
-        // Step 4: Fees & Payments (your existing logic unchanged)
-        $tuitionFee      = 5000.00;
-        $labFee          = 500.00;
-        $miscellaneousFee = 300.00;
-        $otherFee        = 200.00;
-        $discount        = 100.00;
-        $initialPayment  = 1000.00;
+        // dummy fees/payments
+        $tuition=5000; $lab=500; $misc=300; $other=200; $discount=100; $initial=1000;
+        $total=$tuition+$lab+$misc+$other-$discount-$initial;
 
-        $totalFee = $tuitionFee + $labFee + $miscellaneousFee + $otherFee - $discount - $initialPayment;
-
-        $fee = Fee::create([
-            'enrollment_id'    => $enrollment->id,
-            'tuition_fee'      => $tuitionFee,
-            'lab_fee'          => $labFee,
-            'miscellaneous_fee' => $miscellaneousFee,
-            'other_fee'        => $otherFee,
-            'discount'         => $discount,
-            'initial_payment'  => $initialPayment,
+        $fee=Fee::create([
+            'enrollment_id'=>$enrollment->id,
+            'tuition_fee'=>$tuition,
+            'lab_fee'=>$lab,
+            'miscellaneous_fee'=>$misc,
+            'other_fee'=>$other,
+            'discount'=>$discount,
+            'initial_payment'=>$initial,
         ]);
 
-        $installmentAmount = $totalFee > 0 ? $totalFee / 4 : 0;
-
+        $installment=$total>0?$total/4:0;
         Payment::create([
-            'fee_id'            => $fee->id,
-            'prelims_payment'   => $installmentAmount,
-            'prelims_paid'      => false,
-            'midterms_payment'  => $installmentAmount,
-            'midterms_paid'     => false,
-            'pre_final_payment' => $installmentAmount,
-            'pre_final_paid'    => false,
-            'final_payment'     => $installmentAmount,
-            'final_paid'        => false,
-            'status'            => 'Pending',
+            'fee_id'=>$fee->id,
+            'prelims_payment'=>$installment,
+            'prelims_paid'=>false,
+            'midterms_payment'=>$installment,
+            'midterms_paid'=>false,
+            'pre_final_payment'=>$installment,
+            'pre_final_paid'=>false,
+            'final_payment'=>$installment,
+            'final_paid'=>false,
+            'status'=>'Pending',
         ]);
 
-        $dummyFinancialData = [
-            'financier'               => 'Myself',
-            'company_name'            => 'ABC Corp',
-            'company_address'         => '123 Street, City, Country',
-            'income'                  => 35000,
-            'scholarship'             => 5000,
-            'contact_number'          => '123-456-7890',
-            'relative_names'          => ['John Doe', 'Jane Smith'],
-            'relationships'           => ['Father', 'Mother'],
-            'position_courses'        => ['Manager', 'Engineer'],
-            'relative_contact_numbers' => ['987-654-3210', '555-123-4567'],
+        $dummy = [
+            'financier'=>'Myself','company_name'=>'ABC Corp','company_address'=>'123 Street',
+            'income'=>35000,'scholarship'=>5000,'contact_number'=>'123-456-7890',
+            'relative_names'=>['John Doe','Jane Smith'],
+            'relationships'=>['Father','Mother'],
+            'position_courses'=>['Manager','Engineer'],
+            'relative_contact_numbers'=>['987-654-3210','555-123-4567'],
         ];
-
-        $financialData = array_merge($dummyFinancialData, [
-            'enrollment_id'           => $enrollment->id,
-            'relative_names'          => json_encode($dummyFinancialData['relative_names']),
-            'relationships'           => json_encode($dummyFinancialData['relationships']),
-            'position_courses'        => json_encode($dummyFinancialData['position_courses']),
-            'relative_contact_numbers' => json_encode($dummyFinancialData['relative_contact_numbers']),
+        FinancialInformation::create([
+            'enrollment_id'=>$enrollment->id,
+            'financier'=>$dummy['financier'],
+            'company_name'=>$dummy['company_name'],
+            'company_address'=>$dummy['company_address'],
+            'income'=>$dummy['income'],
+            'scholarship'=>$dummy['scholarship'],
+            'contact_number'=>$dummy['contact_number'],
+            'relative_names'=>json_encode($dummy['relative_names']),
+            'relationships'=>json_encode($dummy['relationships']),
+            'position_courses'=>json_encode($dummy['position_courses']),
+            'relative_contact_numbers'=>json_encode($dummy['relative_contact_numbers']),
         ]);
-
-        FinancialInformation::create($financialData);
     }
 }

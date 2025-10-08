@@ -13,42 +13,24 @@ return new class extends Migration
     {
         // Create the subjects table
         Schema::create('subjects', function (Blueprint $table) {
-            $table->id();
-            $table->string('name'); // Subject name (e.g., Math, English)
-            $table->string('code')->unique(); // Unique subject code (e.g., MATH101)
-            $table->string('block')->nullable(); // Block or class group (optional)
-            $table->foreignId('semester_id')->constrained('semesters')->onDelete('cascade'); // References semesters table
-            $table->foreignId('prerequisite_id')->nullable()->constrained('subjects')->onDelete('set null'); // Optional prerequisite subject
-            $table->decimal('fee', 10, 2)->nullable(); // Subject fee (optional)
-            $table->decimal('units', 3, 1)->unsigned(); // Number of units (e.g., 3.0, 1.5)
-            $table->enum('grade_level', [
-                'nursery',
-                'kinder',
-                'grade_1',
-                'grade_2',
-                'grade_3',
-            ]);
-            $table->foreignId('teacher_id')->constrained('teachers')->onDelete('cascade'); // Professor assigned to teach this subject
+        $table->id();
+        $table->string('name'); // Subject name (e.g., Math, English)
+        $table->string('code')->unique(); // Unique subject code (e.g., MATH101)
+        $table->decimal('units', 3, 1)->unsigned(); // e.g., 3.0
+        $table->decimal('fee', 10, 2)->nullable(); // optional
+        $table->enum('grade_level', [
+            'nursery','kinder','grade_1','grade_2','grade_3'
+        ]);
 
-            // New Scheduling Fields
-            $table->json('days'); // Store multiple days as JSON array
-            $table->time('start_time'); // Class start time
-            $table->time('end_time'); // Class end time
-            $table->string('room')->nullable(); // Block or class group (optional)
-            $table->timestamps();
-        });
+        // 👇 prerequisite_id column + foreign key
+        $table->foreignId('prerequisite_id')
+            ->nullable()
+            ->constrained('subjects')
+            ->nullOnDelete();
 
+        $table->timestamps();
+    });
 
-        // Create the pivot table for student-subject enrollment
-        Schema::create('student_subject', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('student_id')->constrained('students')->onDelete('cascade'); // Links to students table
-            $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade'); // Links to subjects table
-            $table->foreignId('enrollment_id')->constrained('enrollments')->onDelete('cascade'); // Links to enrollments table, if applicable
-            $table->decimal('grade', 5, 2)->nullable(); // Grade for the subject (optional)
-            $table->enum('status', ['enrolled', 'dropped', 'completed'])->default('enrolled'); // Enrollment status
-            $table->timestamps();
-        });
 
       
     }
@@ -58,7 +40,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('student_subject');  // Drop student-subject pivot table
         Schema::dropIfExists('subjects');         // Drop subjects table
     }
 };

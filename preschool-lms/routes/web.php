@@ -21,6 +21,8 @@ use App\Http\Controllers\LessonController;
 use App\Http\Controllers\HomeworkController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\SemesterController;
+use App\Http\Controllers\SubjectOfferingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -73,9 +75,6 @@ Route::middleware(['auth', 'verified', 'role:admin|student'])->group(function ()
     Route::get('/student/create', [StudentController::class, 'create'])->name('student.create');
     Route::post('/student', [StudentController::class, 'store'])->name('student.store');
     Route::get('/student-info', [StudentController::class, 'indexStudent'])->name('student.indexStudent');
-    Route::get('students/{studentId}/subjects', [StudentSubjectController::class, 'show'])->name('student_subject.subjects');
-
-    Route::get('students/{studentId}/subjects', [StudentSubjectController::class, 'show'])->name('student_subject.subjects');
 
     Route::get('/enrollments/{id}/details', [EnrollmentController::class, 'fees'])->name('enrollments.fees');
 });
@@ -96,8 +95,6 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
 
     // Delete student data
     Route::delete('student/{id}', [StudentController::class, 'destroy'])->name('student.destroy');
-    Route::get('students/{studentId}/subjects/edit', [StudentSubjectController::class, 'edit'])->name('student_subjects.edit');
-    Route::put('students/{studentId}/subjects', [StudentSubjectController::class, 'update'])->name('student_subjects.update');
 });
 
 // Roles
@@ -126,6 +123,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
 
     Route::resource('fees', FeeController::class);
 
+    Route::resource('semesters', SemesterController::class);
+
     Route::resource('payment', PaymentController::class);
 
     Route::resource('subjects', SubjectController::class)->parameters([
@@ -139,6 +138,28 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
         ->parameters(['teacher' => 'teacher_id'])
         ->except(['show']); // Exclude 'show' because it's restricted to teachers only
 
+    Route::get('subject_assignment', [SubjectOfferingController::class, 'index'])
+        ->name('subject_assignment.index');
+
+    // CREATE
+    Route::get('subject_assignment/create', [SubjectOfferingController::class, 'create'])
+        ->name('subject_assignment.create');
+
+    // STORE
+    Route::post('subject_assignment/store', [SubjectOfferingController::class, 'store'])
+        ->name('subject_assignment.store');
+
+    // EDIT
+    Route::get('subject_assignment/{id}/edit', [SubjectOfferingController::class, 'edit'])
+        ->name('subject_assignment.edit');
+
+    // UPDATE
+    Route::post('subject_assignment/{id}/update', [SubjectOfferingController::class, 'update'])
+        ->name('subject_assignment.update'); // Use POST to simplify
+
+    // DELETE
+    Route::post('subject_assignment/{id}/delete', [SubjectOfferingController::class, 'destroy'])
+        ->name('subject_assignment.destroy'); // Use POST
 });
 
 Route::middleware(['auth', 'verified', 'role:teacher|admin'])->group(function () {

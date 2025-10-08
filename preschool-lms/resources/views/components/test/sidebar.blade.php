@@ -46,6 +46,8 @@
         <a href="{{ route('lessons.index') }}" class="block px-4 py-2 hover:bg-gray-200">Lessons</a>
         <a href="{{ route('homeworks.index') }}" class="block px-4 py-2 hover:bg-gray-200">Homeworks</a>
         <a href="{{ route('quizzes.index') }}" class="block px-4 py-2 hover:bg-gray-200">Quizzes</a>
+         <a href="{{ route('semesters.index') }}" class="block px-4 py-2 hover:bg-gray-200">Semesters</a>
+         <a href="{{ route('subject_assignment.index') }}" class="block px-4 py-2 hover:bg-gray-200">Subject Assignment</a>
         @endif
 
         <!-- Professor links -->

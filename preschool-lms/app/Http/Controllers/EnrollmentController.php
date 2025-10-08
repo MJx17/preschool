@@ -4,13 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Enrollment;
 use App\Models\Student;
-use App\Models\Course;
 use App\Models\Semester;
 use App\Models\Subject;
 use App\Models\Payment;
 use App\Models\Fee;
-use App\Models\StudentSubject;
 use App\Models\FinancialInformation;
+use App\Models\SubjectOffering;
+use App\Models\EnrollmentSubjectOffering;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -18,156 +18,172 @@ use Illuminate\Support\Facades\Auth;
 class EnrollmentController extends Controller
 {
     // Display a listing of enrollments
-    public function index()
+    public function index(Request $request)
     {
-        $enrollments = Enrollment::with('student', 'semester')->paginate(10);
+        $semesterId = $request->get('semester_id');
     
-        return view('enrollments.index', compact('enrollments'));
-    }
-    
-    public function create(Request $request)
-    {
-        $excludedStudentIds = Enrollment::pluck('student_id')->toArray();
-        $students = Student::whereNotIn('id', $excludedStudentIds)->get();
-    
-        $semesters = Semester::where('status', 'active')->get();
-        $subjects = collect();
-    
-        // Filter subjects by grade_level instead of course_id/year_level
-        if ($request->has(['semester_id', 'grade_level'])) {
-            $subjects = Subject::where('semester_id', $request->semester_id)
-                ->where('grade_level', $request->grade_level)
-                ->get();
+        if (!$semesterId) {
+            $activeSemester = Semester::where('status', 'active')->first();
+            $semesterId = $activeSemester->id ?? null;
         }
     
-        return view('enrollments.create', compact('students', 'semesters', 'subjects'));
+        $semesters = Semester::orderBy('start_date', 'desc')->get();
+    
+        $enrollments = Enrollment::with(['student', 'semester'])
+            ->when($semesterId, fn($query) => $query->where('semester_id', $semesterId))
+            ->paginate(15);
+    
+        return view('enrollments.index', compact('enrollments', 'semesters', 'semesterId'));
     }
     
+
+    public function create(Request $request)
+    {
+        $semesterOptions = Semester::orderBy('start_date', 'desc')->get(); // all semesters
+    
+        $gradeLevels = Enrollment::gradeLevels();
+        $students = Student::all();
+    
+        // Optional: keep track of selected semester from request
+        $selectedSemesterId = $request->get('semester_id');
+    
+        // Determine available students (not yet enrolled in selected semester)
+        $availableStudentIds = $students->pluck('id');
+        if ($selectedSemesterId) {
+            $enrolledStudentIds = Enrollment::where('semester_id', $selectedSemesterId)
+                ->pluck('student_id');
+    
+            $availableStudentIds = $students->pluck('id')->diff($enrolledStudentIds);
+        }
+    
+        return view('enrollments.create', compact(
+            'students',
+            'gradeLevels',
+            'availableStudentIds'
+        ))->with('semesters', $semesterOptions)
+          ->with('selectedSemesterId', $selectedSemesterId);
+        
+    }
+    
+
+
     public function store(Request $request)
     {
         $validated = $request->validate([
             'student_id' => 'required|exists:students,id',
             'semester_id' => 'required|exists:semesters,id',
-            'grade_level' => 'required|string',
-            'subjects' => 'required|array',
-            'subjects.*' => 'exists:subjects,id',
-            'category' => 'required|string',
+            'category' => 'required|string|in:new,old,shifter',
+            'subjects' => 'sometimes|array',
+            'subjects.*' => 'exists:subject_offerings,id',
+            // Fees
             'tuition_fee' => 'required|numeric',
             'lab_fee' => 'nullable|numeric',
             'miscellaneous_fee' => 'nullable|numeric',
             'other_fee' => 'nullable|numeric',
             'discount' => 'nullable|numeric',
-            'initial_payment' => 'required|numeric',
-    
-            'financier' => 'required|string',
+            'initial_payment' => 'nullable|numeric',
+            // Payment status
+            'prelims_paid' => 'nullable|boolean',
+            'midterms_paid' => 'nullable|boolean',
+            'pre_final_paid' => 'nullable|boolean',
+            'final_paid' => 'nullable|boolean',
+            // Financial info
+            'financier' => 'nullable|string',
+            'company_name' => 'nullable|string',
+            'company_address' => 'nullable|string',
+            'contact_number' => 'nullable|string',
+            'income' => 'nullable|numeric',
+            'scholarship' => 'nullable|numeric',
             'relative_names' => 'nullable|array',
-            'relative_names.*' => 'nullable|string|max:255',
             'relationships' => 'nullable|array',
-            'relationships.*' => 'nullable|string|max:255',
             'position_courses' => 'nullable|array',
-            'position_courses.*' => 'nullable|string|max:255',
             'relative_contact_numbers' => 'nullable|array',
-            'relative_contact_numbers.*' => 'nullable|string|max:20',
-    
-            'company_name' => 'nullable|string|max:255',
-            'company_address' => 'nullable|string|max:1000',
-            'scholarship' => 'nullable|string|max:255',
-            'income' => 'nullable|string|max:1000',
-            'contact_number' => 'nullable|string|max:20',
         ]);
     
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
-    
-            // Create enrollment
+            // 1. Create enrollment
             $enrollment = Enrollment::create([
                 'student_id' => $validated['student_id'],
                 'semester_id' => $validated['semester_id'],
-                'grade_level' => $validated['grade_level'],  // ✅ new
-                'subject_ids' => json_encode($validated['subjects']),
                 'category' => $validated['category'],
             ]);
     
-            // Update student status
-            Student::where('id', $validated['student_id'])->update(['status' => 'enrolled']);
-    
-            // Insert subjects into pivot
-            $studentSubjects = [];
-            foreach ($validated['subjects'] as $subject_id) {
-                $studentSubjects[] = [
-                    'student_id' => $validated['student_id'],
-                    'subject_id' => $subject_id,
-                    'enrollment_id' => $enrollment->id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+            // 2. Attach subject offerings
+            if (!empty($validated['subjects'])) {
+                foreach ($validated['subjects'] as $subjectOfferingId) {
+                    EnrollmentSubjectOffering::create([
+                        'enrollment_id' => $enrollment->id,
+                        'subject_offering_id' => $subjectOfferingId,
+                        'status' => 'enrolled',
+                    ]);
+                }
             }
-            StudentSubject::insert($studentSubjects);
     
-            // Fees + payments logic stays the same…
-            $tuitionFee = (float) $validated['tuition_fee'];
-            $labFee = (float) ($validated['lab_fee'] ?? 0);
-            $miscellaneousFee = (float) ($validated['miscellaneous_fee'] ?? 0);
-            $otherFee = (float) ($validated['other_fee'] ?? 0);
-            $discount = (float) ($validated['discount'] ?? 0);
-            $initialPayment = (float) $validated['initial_payment'];
-    
-            $totalFee = $tuitionFee + $labFee + $miscellaneousFee + $otherFee - $discount - $initialPayment;
+            // 3. Create Fees
+            $total = ($validated['tuition_fee'] ?? 0)
+                   + ($validated['lab_fee'] ?? 0)
+                   + ($validated['miscellaneous_fee'] ?? 0)
+                   + ($validated['other_fee'] ?? 0)
+                   - ($validated['discount'] ?? 0)
+                   - ($validated['initial_payment'] ?? 0);
     
             $fee = Fee::create([
                 'enrollment_id' => $enrollment->id,
-                'tuition_fee' => $tuitionFee,
-                'lab_fee' => $labFee,
-                'miscellaneous_fee' => $miscellaneousFee,
-                'other_fee' => $otherFee,
-                'discount' => $discount,
-                'total' => $totalFee,
-                'initial_payment' => $initialPayment,
+                'tuition_fee' => $validated['tuition_fee'],
+                'lab_fee' => $validated['lab_fee'] ?? 0,
+                'miscellaneous_fee' => $validated['miscellaneous_fee'] ?? 0,
+                'other_fee' => $validated['other_fee'] ?? 0,
+                'discount' => $validated['discount'] ?? 0,
+                'initial_payment' => $validated['initial_payment'] ?? 0,
             ]);
     
-            $installmentAmount = $totalFee > 0 ? $totalFee / 4 : 0;
-    
+            // 4. Create Payments
+            $installment = $total > 0 ? $total / 4 : 0;
             Payment::create([
                 'fee_id' => $fee->id,
-                'prelims_payment' => $installmentAmount,
-                'prelims_paid' => false,
-                'midterms_payment' => $installmentAmount,
-                'midterms_paid' => false,
-                'pre_final_payment' => $installmentAmount,
-                'pre_final_paid' => false,
-                'final_payment' => $installmentAmount,
-                'final_paid' => false,
-                'amount_paid' => 0,
-                'balance' => $totalFee,
+                'prelims_payment' => $installment,
+                'prelims_paid' => $validated['prelims_paid'] ?? false,
+                'midterms_payment' => $installment,
+                'midterms_paid' => $validated['midterms_paid'] ?? false,
+                'pre_final_payment' => $installment,
+                'pre_final_paid' => $validated['pre_final_paid'] ?? false,
+                'final_payment' => $installment,
+                'final_paid' => $validated['final_paid'] ?? false,
                 'status' => 'Pending',
             ]);
     
-            $financialData = [
+            // 5. Create financial info
+            FinancialInformation::create([
                 'enrollment_id' => $enrollment->id,
-                'financier' => $validated['financier'],
-                'company_name' => $validated['company_name'],
-                'company_address' => $validated['company_address'],
-                'income' => $validated['income'],
-                'scholarship' => $validated['scholarship'],
-                'contact_number' => $validated['contact_number'],
+                'financier' => $validated['financier'] ?? null,
+                'company_name' => $validated['company_name'] ?? null,
+                'company_address' => $validated['company_address'] ?? null,
+                'contact_number' => $validated['contact_number'] ?? null,
+                'income' => $validated['income'] ?? null,
+                'scholarship' => $validated['scholarship'] ?? null,
                 'relative_names' => json_encode($validated['relative_names'] ?? []),
                 'relationships' => json_encode($validated['relationships'] ?? []),
                 'position_courses' => json_encode($validated['position_courses'] ?? []),
                 'relative_contact_numbers' => json_encode($validated['relative_contact_numbers'] ?? []),
-            ];
+            ]);
     
-            FinancialInformation::create($financialData);
+            // 6. Update student status
+            $student = $enrollment->student;
+            $student->status = 'enrolled';
+            $student->save();
     
             DB::commit();
-    
-            return redirect()->route('enrollments.index')
-                ->with('success', 'Enrollment created successfully with fees and payment schedule!');
+            return redirect()->route('enrollments.index')->with('success', 'Enrollment created successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Failed to create enrollment: ' . $e->getMessage());
+            return back()->withErrors(['error' => $e->getMessage()]);
         }
     }
     
+
+
+
 
     // Delete an enrollment
     public function destroy($id)
@@ -188,18 +204,18 @@ class EnrollmentController extends Controller
     {
         // Always start with semester filter
         $query = Subject::where('semester_id', $request->semester_id);
-    
+
         // If a grade_level was passed, filter by it
         if ($request->filled('grade_level')) {
             $query->where('grade_level', $request->grade_level);
         }
-    
+
         // Fetch subjects grouped by grade_level
         $subjects = $query->get()->groupBy('grade_level');
-    
+
         return response()->json($subjects);
     }
-    
+
 
 
     public function fees($id)
@@ -276,30 +292,30 @@ class EnrollmentController extends Controller
     public function edit($id)
     {
         $enrollment = Enrollment::findOrFail($id);
-    
+
         // All students
         $students = Student::all();
-    
+
         // All active semesters
         $semesters = Semester::all();
-    
+
         // Get subjects for this enrollment based on semester + grade_level
         $subjects = Subject::where('semester_id', $enrollment->semester_id)
             ->where('grade_level', $enrollment->grade_level)
             ->get();
-    
+
         // Selected subjects stored in enrollment
         $selectedSubjects = json_decode($enrollment->subject_ids, true);
-    
+
         // Fee info
         $fee = Fee::where('enrollment_id', $id)->first();
-    
+
         // Financial info
         $financialData = FinancialInformation::where('enrollment_id', $id)->first();
-    
+
         // Payment info (if fee exists)
         $payment = $fee ? Payment::where('fee_id', $fee->id)->first() : null;
-    
+
         return view(
             'enrollments.edit',
             compact(
@@ -314,7 +330,7 @@ class EnrollmentController extends Controller
             )
         );
     }
-    
+
 
 
     public function update(Request $request, $id)
@@ -457,7 +473,4 @@ class EnrollmentController extends Controller
             return response()->json(['message' => 'Error updating enrollment.', 'error' => $e->getMessage()], 500);
         }
     }
-
-
-
 }
