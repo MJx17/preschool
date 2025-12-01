@@ -57,15 +57,29 @@
                                 <td class="p-2 border">{{ $enrollment->full_semester ?? 'N/A' }}</td>
                                 <td class="p-2 border">{{ $enrollment->category_text ?? 'N/A' }}</td>
 
-                                <td class="p-2 border space-x-2">
-                                    <a href="{{ route('enrollments.show', $enrollment->id) }}" class="text-blue-500 hover:underline">View</a>
-                                    <a href="{{ route('enrollments.edit', $enrollment->id) }}" class="text-yellow-500 hover:underline">Edit</a>
-                                    <form action="{{ route('enrollments.destroy', $enrollment->id) }}" method="POST" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-500 hover:underline" onclick="return confirm('Are you sure?')">Delete</button>
-                                    </form>
-                                </td>
+                                 <td class="px-1 py-4 whitespace-nowrap border align-center justify-center flex gap-4">
+                                <a href="{{ route('enrollments.fees', $enrollment->id) }}"
+                                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 border border-transparent rounded-md hover:bg-green-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
+                                    View
+                                </a>
+                                <a href="{{ route('enrollments.edit', $enrollment->id) }}"
+                                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-500 border border-transparent rounded-md hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
+                                    Edit
+                                </a>
+
+                                <!-- Delete Button -->
+                                <form id="delete-form-{{ $enrollment->id }}"
+                                    action="{{ route('enrollments.destroy', $enrollment->id) }}" method="POST"
+                                    class="inline-block ">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="button"
+                                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-500 border border-transparent rounded-md hover:bg-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                        onclick="confirmDelete('delete-form-{{ $enrollment->id }}')">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
                             </tr>
                             @endforeach
                         </tbody>

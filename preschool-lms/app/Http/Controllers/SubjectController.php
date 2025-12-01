@@ -3,20 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Subject;
+use App\Models\GradeLevel;
 use Illuminate\Http\Request;
 
 class SubjectController extends Controller
 {
     public function index()
     {
-        $subjects = Subject::paginate(10);
+        $subjects = Subject::with('gradeLevel')->paginate(10); // eager load grade level
         return view('subjects.index', compact('subjects'));
     }
 
     public function create()
     {
-        $subjects = Subject::all(); // For prerequisites
-        return view('subjects.create', compact('subjects'));
+        $subjects = Subject::all();         // For prerequisites
+        $gradeLevels = GradeLevel::all();   // For grade level select
+        return view('subjects.create', compact('subjects', 'gradeLevels'));
     }
 
     public function store(Request $request)
@@ -24,7 +26,7 @@ class SubjectController extends Controller
         $validated = $request->validate([
             'name'           => 'required|string|max:255',
             'code'           => 'required|string|max:50|unique:subjects,code',
-            'grade_level'    => 'required|string',
+            'grade_level_id' => 'required|exists:grade_levels,id', // use foreign key
             'prerequisite_id'=> 'nullable|exists:subjects,id',
             'fee'            => 'required|numeric|min:0',
             'units'          => 'required|numeric|min:0.1|max:10',
@@ -39,10 +41,11 @@ class SubjectController extends Controller
 
     public function edit($id)
     {
-        $subject  = Subject::findOrFail($id);
-        $subjects = Subject::where('id', '!=', $subject->id)->get();
+        $subject      = Subject::findOrFail($id);
+        $subjects     = Subject::where('id', '!=', $subject->id)->get(); // for prerequisite dropdown
+        $gradeLevels  = GradeLevel::all(); // for grade level dropdown
 
-        return view('subjects.edit', compact('subject','subjects'));
+        return view('subjects.edit', compact('subject','subjects','gradeLevels'));
     }
 
     public function update(Request $request, $id)
@@ -52,7 +55,7 @@ class SubjectController extends Controller
         $validated = $request->validate([
             'name'           => 'required|string|max:255',
             'code'           => 'required|string|max:50|unique:subjects,code,'.$subject->id,
-            'grade_level'    => 'required|string',
+            'grade_level_id' => 'required|exists:grade_levels,id', // use foreign key
             'prerequisite_id'=> 'nullable|exists:subjects,id',
             'fee'            => 'required|numeric|min:0',
             'units'          => 'required|numeric|min:0.1|max:10',
@@ -72,11 +75,10 @@ class SubjectController extends Controller
     }
 
     public function show($id)
-{
-    $subject = Subject::with('subjectOfferings.teacher','subjectOfferings.semester','prerequisite')
-                      ->findOrFail($id);
+    {
+        $subject = Subject::with('subjectOfferings.teacher','subjectOfferings.semester','prerequisite','gradeLevel')
+                          ->findOrFail($id);
 
-    return view('subjects.show', compact('subject'));
-}
-
+        return view('subjects.show', compact('subject'));
+    }
 }

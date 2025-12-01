@@ -10,14 +10,14 @@
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
 
                 @if ($errors->any())
-                    <div class="mb-4 text-red-600">
-                        <strong>Whoops! Something went wrong.</strong>
-                        <ul class="list-disc list-inside">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+                <div class="mb-4 text-red-600">
+                    <strong>Whoops! Something went wrong.</strong>
+                    <ul class="list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
                 @endif
 
                 <form method="POST" action="{{ route('subjects.store') }}">
@@ -35,18 +35,23 @@
                         <input id="code" name="code" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" value="{{ old('code') }}" required>
                     </div>
 
+                
                     <!-- Grade Level -->
                     <div class="mb-4">
-                        <label for="grade_level" class="block font-medium text-sm text-gray-700">Grade Level</label>
-                        <select id="grade_level" name="grade_level" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                        <label for="grade_level_id" class="block font-medium text-sm text-gray-700">Grade Level</label>
+                        <select id="grade_level_id" name="grade_level_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
                             <option value="">-- Select Grade Level --</option>
-                            <option value="nursery">Nursery</option>
-                            <option value="kinder">Kinder</option>
-                            <option value="grade_1">Grade 1</option>
-                            <option value="grade_2">Grade 2</option>
-                            <option value="grade_3">Grade 3</option>
+                            @foreach ($gradeLevels as $level)
+                            <option value="{{ $level->id }}" {{ old('grade_level_id') == $level->id ? 'selected' : '' }}>
+                                {{ $level->name }}
+                            </option>
+                            @endforeach
                         </select>
+                        @error('grade_level_id')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
+
 
                     <!-- Prerequisite -->
                     <div class="mb-4">
@@ -54,9 +59,9 @@
                         <select id="prerequisite_id" name="prerequisite_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                             <option value="">-- None --</option>
                             @foreach ($subjects as $subject)
-                                <option value="{{ $subject->id }}" {{ old('prerequisite_id')==$subject->id ? 'selected' : '' }}>
-                                    {{ $subject->name }}
-                                </option>
+                            <option value="{{ $subject->id }}" {{ old('prerequisite_id')==$subject->id ? 'selected' : '' }}>
+                                {{ $subject->name }}
+                            </option>
                             @endforeach
                         </select>
                     </div>

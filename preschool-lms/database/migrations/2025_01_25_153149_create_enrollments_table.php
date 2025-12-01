@@ -15,25 +15,38 @@ class CreateEnrollmentsTable extends Migration
     {
         Schema::create('enrollments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
-            $table->foreignId('semester_id')->nullable()->constrained('semesters')->onDelete('set null');
-            $table->enum('grade_level', [
-                'nursery','kinder','grade_1','grade_2','grade_3'
-            ]);
+
+            // Student relationship
+            $table->foreignId('student_id')
+                ->constrained('students')
+                ->onDelete('cascade');
+
+            // Semester relationship
+            $table->foreignId('semester_id')
+                ->nullable()
+                ->constrained('semesters')
+                ->onDelete('set null');
+
+            // Grade level
+            $table->foreignId('grade_level_id')
+                ->constrained('grade_levels');
+
+            // Section (new)
+            $table->foreignId('section_id')
+                ->nullable()
+                ->constrained('sections')
+                ->onDelete('set null');
+
+            // Category enum
             $table->enum('category', ['new', 'old', 'shifter'])->nullable();
+
             $table->timestamps();
         });
-        
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
         Schema::dropIfExists('enrollment_subjects'); // Drop pivot table first
-        Schema::dropIfExists('enrollments'); // Then drop enrollments table
+        Schema::dropIfExists('enrollments');        // Then drop enrollments table
     }
 }

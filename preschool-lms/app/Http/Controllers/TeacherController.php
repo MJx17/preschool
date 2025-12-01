@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Teacher;
 use App\Models\User;
+use App\Models\SubjectOffering;
 use Illuminate\Http\Request;
 
 class TeacherController extends Controller
@@ -41,7 +42,14 @@ class TeacherController extends Controller
         ]);
 
         Teacher::create($request->only([
-            'user_id', 'surname', 'first_name', 'middle_name', 'sex', 'contact_number', 'email', 'designation'
+            'user_id',
+            'surname',
+            'first_name',
+            'middle_name',
+            'sex',
+            'contact_number',
+            'email',
+            'designation'
         ]));
 
         return redirect()->route('teachers.index')->with('success', 'Teacher created successfully!');
@@ -84,7 +92,14 @@ class TeacherController extends Controller
 
         $teacher = Teacher::findOrFail($id);
         $teacher->update($request->only([
-            'user_id', 'surname', 'first_name', 'middle_name', 'sex', 'contact_number', 'email', 'designation'
+            'user_id',
+            'surname',
+            'first_name',
+            'middle_name',
+            'sex',
+            'contact_number',
+            'email',
+            'designation'
         ]));
 
         return redirect()->route('teachers.index')->with('updated', 'Teacher updated successfully!');
@@ -112,8 +127,13 @@ class TeacherController extends Controller
         $subjects = $teacher->subjects()->withCount('students')->with('students')->get();
 
         $dayShortcodes = [
-            'Monday' => 'M', 'Tuesday' => 'T', 'Wednesday' => 'W',
-            'Thursday' => 'Th', 'Friday' => 'F', 'Saturday' => 'Sa', 'Sunday' => 'Su'
+            'Monday' => 'M',
+            'Tuesday' => 'T',
+            'Wednesday' => 'W',
+            'Thursday' => 'Th',
+            'Friday' => 'F',
+            'Saturday' => 'Sa',
+            'Sunday' => 'Su'
         ];
 
         $subjects->transform(function ($subject) use ($dayShortcodes) {
@@ -136,5 +156,24 @@ class TeacherController extends Controller
         }
 
         return view('teachers.profile', compact('teacher'));
+    }
+
+    public function subjects($teacher_id)
+    {
+        $user = auth()->user();
+
+        // Ensure the logged-in teacher can only view their own subjects
+        if ($user->hasRole('teacher') && optional($user->teacher)->id != $teacher_id) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $teacher = Teacher::findOrFail($teacher_id);
+
+        // Fetch subject offerings assigned to this teacher
+        $subjectOfferings = SubjectOffering::with(['subject', 'semester'])
+            ->where('teacher_id', $teacher->id)
+            ->paginate(10);
+
+        return view('teachers.subjects', compact('teacher', 'subjectOfferings'));
     }
 }

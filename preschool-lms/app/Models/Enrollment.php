@@ -12,8 +12,8 @@ class Enrollment extends Model
     protected $fillable = [
         'student_id',
         'semester_id',
-        'course_id',
-        'grade_level',
+        'grade_level_id',
+        'section_id',
         'category'
     ];
 
@@ -29,14 +29,8 @@ class Enrollment extends Model
         return $this->belongsTo(Semester::class);
     }
 
-    public static function gradeLevels(): array
-    {
-        return ['nursery', 'kinder', 'grade_1', 'grade_2', 'grade_3'];
-    }
-
     /**
-     * Each Enrollment can have many EnrollmentSubjectOffering rows
-     * (each row = one SubjectOffering the student is taking)
+     * A single enrollment can have many pivot rows (one per subject offering)
      */
     public function enrollmentSubjectOfferings()
     {
@@ -44,18 +38,16 @@ class Enrollment extends Model
     }
 
     /**
-     * Convenience accessor:
-     * get the actual SubjectOffering models for this enrollment
+     * A convenience relationship to get actual SubjectOffering models
+     * through the pivot table
      */
     public function subjectOfferings()
     {
-        return $this->hasManyThrough(
+        return $this->belongsToMany(
             SubjectOffering::class,
-            EnrollmentSubjectOffering::class,
-            'enrollment_id',         // FK on EnrollmentSubjectOffering
-            'id',                    // FK on SubjectOffering (its PK)
-            'id',                    // Local key on Enrollment
-            'subject_offering_id',    // Local key on EnrollmentSubjectOffering
+            'enrollment_subject_offering',   
+            'enrollment_id',                 
+            'subject_offering_id'            
         );
     }
 
@@ -73,26 +65,19 @@ class Enrollment extends Model
 
     public function financialInformation()
     {
-        return $this->hasOne(FinancialInformation::class,  'enrollment_id');
+        return $this->hasOne(FinancialInformation::class, 'enrollment_id');
     }
 
     /** Helpers */
 
-    /**
-     * Accessor: full readable semester string
-     * Example: "First Semester - 2025-2026"
-     */
     public function getFullSemesterAttribute()
     {
         return $this->semester->semester ?? 'N/A';
     }
-    
 
     public function getGradeLevelTextAttribute()
     {
-        if (empty($this->grade_level)) {
-            return null; // ensures ?? works in Blade
-        }
+        if (!$this->grade_level) return null;
 
         if (str_starts_with($this->grade_level, 'grade_')) {
             $num = str_replace('grade_', '', $this->grade_level);

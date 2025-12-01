@@ -14,12 +14,13 @@ class SubjectOffering extends Model
         'subject_id',
         'semester_id',
         'teacher_id',
-        'block',
+        'section',
         'room',
-        'days',        // JSON array
+        'days', // JSON array
         'start_time',
         'end_time',
     ];
+
 
     /** ──────── Relationships ──────── */
     public function subject()
@@ -37,6 +38,11 @@ class SubjectOffering extends Model
         return $this->belongsTo(Teacher::class);
     }
 
+    public function section()
+    {
+        return $this->belongsTo(Section::class); // optional
+    }
+
     public function enrollments()
     {
         return $this->belongsToMany(Enrollment::class, 'enrollment_subject_offering')
@@ -48,6 +54,18 @@ class SubjectOffering extends Model
     {
         return $this->hasMany(EnrollmentSubjectOffering::class);
     }
+
+    public function attendanceSessions()
+    {
+        return $this->hasMany(AttendanceSession::class);
+    }
+
+    public function grades()
+    {
+        return $this->hasMany(Grade::class, 'subject_offering_id');
+    }
+
+
 
     /** ──────── Accessors ──────── */
     public function getFormattedDaysAttribute()
@@ -62,10 +80,14 @@ class SubjectOffering extends Model
             'Sunday'    => 'Su'
         ];
 
-        return collect($this->days ?? [])
+        $daysArray = is_string($this->days) ? json_decode($this->days, true) : ($this->days ?? []);
+
+        return collect($daysArray)
             ->map(fn($d) => $map[$d] ?? '')
             ->implode(', ');
     }
+
+
 
     public function getClassTimeAttribute()
     {
@@ -99,6 +121,4 @@ class SubjectOffering extends Model
     {
         return $this->category ? ucfirst($this->category) : null;
     }
-
-   
 }

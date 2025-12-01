@@ -46,7 +46,7 @@ class Student extends Model
         'guardians_occupation',
         'guardians_employer',
         'guardians_employer_address',
-        
+
         'living_situation',
         'living_address',
         'living_contact_number',
@@ -76,8 +76,8 @@ class Student extends Model
     public function subjects()
     {
         return $this->belongsToMany(Subject::class, 'student_subject')
-                    ->withPivot('status', 'grade')  // Including enrollment status and remarks
-                    ->withTimestamps();
+            ->withPivot('status', 'grade')  // Including enrollment status and remarks
+            ->withTimestamps();
     }
 
     public function teacher()
@@ -86,12 +86,7 @@ class Student extends Model
     }
 
 
-    /**
-     * Relationship with Course.
-     *
 
-     * Dynamically get the grade level based on enrolled subjects and other criteria.
-     */
     public function getFormattedGradeLevelAttribute()
     {
         $gradeLevels = [
@@ -103,44 +98,44 @@ class Student extends Model
             'grade_2'     => 'Grade 2',
             'grade_3'     => 'Grade 3',
         ];
-    
+
         return $gradeLevels[$this->grade_level] ?? 'N/A';
     }
-    
-
-     public function getFormattedLivingSituationAttribute()
-     {
-         $livingSituation = [
-             'with_guardian' => 'With Guardian',
-             'with_family' => 'With Family',
-             'with_relatives' => 'With Relatives',
-             'boarding_house' => 'Boarding House',
-             // Add more levels if necessary
-         ];
- 
-         return $livingSituation[$this->living_situation] ?? 'N/A';
-     }
 
 
-     public function getYearLevelByStudentId($studentId)
-        {
-            // Get the enrollment for the student based on student_id
-            $enrollment = Enrollment::where('student_id', $studentId)->first();
+    public function getFormattedLivingSituationAttribute()
+    {
+        $livingSituation = [
+            'with_guardian' => 'With Guardian',
+            'with_family' => 'With Family',
+            'with_relatives' => 'With Relatives',
+            'boarding_house' => 'Boarding House',
+            // Add more levels if necessary
+        ];
 
-            // Check if the enrollment exists and return the formatted grade level
-            if ($enrollment) {
-                return $enrollment->formatted_grade_level; // This uses the accessor we defined earlier
-            }
+        return $livingSituation[$this->living_situation] ?? 'N/A';
+    }
 
-            return 'N/A'; // Return 'N/A' if no enrollment is found
+
+    public function getYearLevelByStudentId($studentId)
+    {
+        // Get the enrollment for the student based on student_id
+        $enrollment = Enrollment::where('student_id', $studentId)->first();
+
+        // Check if the enrollment exists and return the formatted grade level
+        if ($enrollment) {
+            return $enrollment->formatted_grade_level; // This uses the accessor we defined earlier
         }
+
+        return 'N/A'; // Return 'N/A' if no enrollment is found
+    }
 
     public function getFullNameAttribute()
     {
         return $this->first_name . ' ' . $this->surname;
     }
 
-        public function semester()
+    public function semester()
     {
         return $this->belongsTo(Semester::class);
     }
@@ -150,9 +145,7 @@ class Student extends Model
     }
 
     public function enrollment()
-{
-    return $this->hasOne(Enrollment::class);
-}
-
-
+    {
+        return $this->hasOne(Enrollment::class);
+    }
 }

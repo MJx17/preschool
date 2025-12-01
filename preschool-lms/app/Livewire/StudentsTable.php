@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Livewire;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -49,9 +49,11 @@ class StudentsTable extends Component
             $detailedStudents = $detailedStudents->where('status', $this->statusFilter);
         }
 
+        $currentPage = request()->query('page', 1);
+
         return view('livewire.students-table', [
-            'students' => $students->forPage($this->page, 10), // Custom pagination
-            'detailedStudents' => $detailedStudents->forPage($this->page, 5),
+            'students' => $students->forPage($currentPage, 10),
+            'detailedStudents' => $detailedStudents->forPage($currentPage, 5),
             'totalStudents' => $students->count(),
             'totalDetailedStudents' => $detailedStudents->count(),
         ]);

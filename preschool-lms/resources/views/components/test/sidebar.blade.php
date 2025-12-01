@@ -46,8 +46,8 @@
         <a href="{{ route('lessons.index') }}" class="block px-4 py-2 hover:bg-gray-200">Lessons</a>
         <a href="{{ route('homeworks.index') }}" class="block px-4 py-2 hover:bg-gray-200">Homeworks</a>
         <a href="{{ route('quizzes.index') }}" class="block px-4 py-2 hover:bg-gray-200">Quizzes</a>
-         <a href="{{ route('semesters.index') }}" class="block px-4 py-2 hover:bg-gray-200">Semesters</a>
-         <a href="{{ route('subject_assignment.index') }}" class="block px-4 py-2 hover:bg-gray-200">Subject Assignment</a>
+        <a href="{{ route('semesters.index') }}" class="block px-4 py-2 hover:bg-gray-200">Semesters</a>
+        <a href="{{ route('subject_assignment.index') }}" class="block px-4 py-2 hover:bg-gray-200">Subject Schedule</a>
         @endif
 
         <!-- Professor links -->
@@ -59,6 +59,28 @@
         <a href="{{ route('professors.profile', auth()->user()->professor->id) }}"
             class="block px-4 py-2 hover:bg-gray-200">Details</a>
         @endif
+
+        <!-- 🧑‍🏫 Teacher links -->
+        @if(auth()->user()?->hasRole('teacher'))
+        <a href="{{ route('attendance.teacherSubjects') }}" class="block px-4 py-2 hover:bg-gray-200">
+            📚 My Subjects
+        </a>
+        <a href="{{ route('teachers.subjects', auth()->user()->teacher->id) }}"
+            class="block px-4 py-2 hover:bg-gray-200">📚Subjects</a>
+        <a href="{{ route('attendance.index') }}" class="block px-4 py-2 hover:bg-gray-200">
+            📝 Attendance
+        </a>
+        <a href="{{ route('homeworks.index') }}" class="block px-4 py-2 hover:bg-gray-200">
+            🧾 Homework
+        </a>
+        <a href="{{ route('quizzes.index') }}" class="block px-4 py-2 hover:bg-gray-200">
+            🧮 Quizzes
+        </a>
+        <a href="{{ route('lessons.index') }}" class="block px-4 py-2 hover:bg-gray-200">
+            📖 Lessons
+        </a>
+        @endif
+
 
     </nav>
 </div>

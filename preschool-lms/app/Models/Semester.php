@@ -56,4 +56,26 @@ class Semester extends Model
     {
         return ucfirst($this->status);
     }
+
+
+    public function getSemesterTextAttribute(): string
+    {
+        if (!$this->semester) return 'N/A';
+        $parts = explode(' ', $this->semester, 3); // limit to 3 parts
+        return $parts[0] . ' ' . $parts[1]; // "First Semester"
+    }
+
+    // Returns only the school year part, e.g., "2025-2026"
+    public function getSchoolYearAttribute(): string
+    {
+        if (!$this->semester) return 'N/A';
+        $parts = explode(' ', $this->semester, 3);
+        return $parts[2] ?? 'N/A';
+    }
+
+    // Or a combined accessor
+    public function getFullLabelAttribute(): string
+    {
+        return $this->semester ?? 'N/A';
+    }
 }

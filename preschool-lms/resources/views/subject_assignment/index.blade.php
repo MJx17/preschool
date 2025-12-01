@@ -9,7 +9,7 @@
         <div class="flex justify-end mb-4">
             <a href="{{ route('subject_assignment.create') }}"
                 class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
-                Add New Assignment
+                Add New Schedule
             </a>
         </div>
 
@@ -34,16 +34,13 @@
                 <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($subjectAssignments as $assignment)
                     <tr>
-                        <td class="px-6 py-4">{{ $assignment->subject->name }}</td>
+                        <td class="px-6 py-4">{{ $assignment->subject->code }}</td>
                         <td class="px-6 py-4">{{ $assignment->semester->semester }}</td>
                         <td class="px-6 py-4">{{ $assignment->teacher->user->name ?? 'N/A' }}</td>
                         <td class="px-6 py-4">{{ $assignment->block }}</td>
                         <td class="px-6 py-4">{{ $assignment->room }}</td>
                         <td class="px-6 py-4">
-                            @php
-                            $days = is_string($assignment->days) ? json_decode($assignment->days, true) : (array) $assignment->days;
-                            @endphp
-                            {{ !empty($days) ? implode(', ', $days) : '-' }}
+                            {{ $assignment->formatted_days ?: '-' }}
                         </td>
 
                         <td class="px-6 py-4">

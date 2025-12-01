@@ -5,8 +5,19 @@
 
     <div class="max-w-5xl mx-auto py-12 px-6">
         <div class="bg-white shadow-lg rounded-lg p-8">
-            <form action="/subject_assignment/{{ $subject_assignment->id }}/update" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form action="{{ route('subject_assignment.update', $subject_assignment->id) }}" method="POST"
+                  class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 @csrf
+
+                @if($errors->any())
+                    <div class="col-span-1 md:col-span-2 text-red-600 mb-4">
+                        <ul class="list-disc pl-5">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
                 {{-- Subject --}}
                 <div>
@@ -47,46 +58,44 @@
                 {{-- Block --}}
                 <div>
                     <label for="block" class="block text-sm font-medium text-gray-700">Block</label>
-                    <input type="text" name="block" id="block" value="{{ $subject_assignment->block }}" required
+                    <input type="text" name="block" id="block" value="{{ old('block', $subject_assignment->block) }}" required
                            class="w-full p-2 border rounded">
                 </div>
 
                 {{-- Room --}}
                 <div>
                     <label for="room" class="block text-sm font-medium text-gray-700">Room</label>
-                    <input type="text" name="room" id="room" value="{{ $subject_assignment->room }}" required
+                    <input type="text" name="room" id="room" value="{{ old('room', $subject_assignment->room) }}" required
                            class="w-full p-2 border rounded">
                 </div>
 
                 {{-- Days --}}
-                <div class="col-span-1 md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Days</label>
-                    <div class="flex flex-wrap gap-4">
-                        @foreach(['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] as $day)
-                            <label class="flex items-center gap-2">
-                                <input type="checkbox" name="days[]" value="{{ $day }}" class="rounded border-gray-300"
-                                       {{ in_array($day, $selectedDays) ? 'checked' : '' }}>
-                                <span>{{ $day }}</span>
-                            </label>
-                        @endforeach
-                    </div>
+                <div class="col-span-1 md:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <label class="block text-sm font-medium text-gray-700 col-span-2">Days</label>
+                    @foreach(['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] as $day)
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" name="days[]" value="{{ $day }}" class="rounded border-gray-300"
+                                   {{ in_array($day, old('days', $selectedDays)) ? 'checked' : '' }}>
+                            <span>{{ $day }}</span>
+                        </label>
+                    @endforeach
                 </div>
 
                 {{-- Start Time --}}
                 <div>
                     <label for="start_time" class="block text-sm font-medium text-gray-700">Start Time</label>
-                    <input type="time" name="start_time" id="start_time" value="{{ $subject_assignment->start_time }}" required
+                    <input type="time" name="start_time" id="start_time" value="{{ old('start_time', $subject_assignment->start_time) }}" required
                            class="w-full p-2 border rounded">
                 </div>
 
                 {{-- End Time --}}
                 <div>
                     <label for="end_time" class="block text-sm font-medium text-gray-700">End Time</label>
-                    <input type="time" name="end_time" id="end_time" value="{{ $subject_assignment->end_time }}" required
+                    <input type="time" name="end_time" id="end_time" value="{{ old('end_time', $subject_assignment->end_time) }}" required
                            class="w-full p-2 border rounded">
                 </div>
 
-                {{-- Submit Buttons --}}
+                {{-- Submit --}}
                 <div class="col-span-1 md:col-span-2 flex justify-end gap-4 mt-4">
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
                         Update

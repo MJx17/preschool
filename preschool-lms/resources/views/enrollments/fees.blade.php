@@ -36,33 +36,16 @@
                         Financial
                     </button>
                 </div>
-
                 <!-- Subjects Tab -->
                 <div x-show="activeTab === 'subjects'">
 
-
-                    <!-- Iterate through students and display a download button for each -->
-                    <!-- <a href="{{ route('download-subjects-pdf', $enrollment->student->id) }}">
-                        <button class="bg-blue-500 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 mb-4">
-                            Download
-                        </button>
-                    </a> -->
-
                     <a href="{{ route('pdf.fees', $enrollment->id) }}"
-                        class="inline-flex items-center px-4 py-2 mb-4 text-sm font-medium text-white bg-green-500 border border-transparent rounded-md hover:bg-green-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
+                        class="inline-flex items-center px-4 py-2 mb-4 text-sm font-medium text-white bg-green-500 border border-transparent rounded-md hover:bg-green-300">
                         Download
                     </a>
 
-                    <!-- <a href="{{ route('pdf.financial', $enrollment->id) }}"
-                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-500 border border-transparent rounded-md hover:bg-green-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
-                        View
-                    </a> -->
-
-
-
                     <!-- Student Information -->
-                    <div
-                        class="mb-4 p-4 border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-800">
+                    <div class="mb-4 p-4 border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-800">
                         <p class="font-semibold text-lg text-gray-800 dark:text-white mb-2">Student Information</p>
 
                         <div class="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -70,14 +53,14 @@
                                 <span class="font-semibold">Name:</span>
                                 <span>{{ $enrollment->student->surname ?? 'N/A' }},
                                     {{ $enrollment->student->first_name ?? 'N/A' }}
-                                    {{ $enrollment->student->middle_name ?? '' }}</span>
+                                    {{ $enrollment->student->middle_name ?? '' }}
+                                </span>
                             </div>
+
                             <div class="flex justify-between">
                                 <span class="font-semibold">Student #:</span>
                                 <span>{{ $enrollment->student->id ?? 'N/A' }}</span>
                             </div>
-
-
                         </div>
 
                         <div class="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -85,38 +68,33 @@
                                 <span class="font-semibold">Semester:</span>
                                 <span>{{ $enrollment->semester->semester_text ?? 'N/A' }}</span>
                             </div>
-
-                            <div class="flex justify-between">
-                                <span class="font-semibold">Year Level:</span>
-                                <span>{{ $enrollment->formatted_year_level ?? 'N/A' }}</span>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-x-4 gap-y-2">
                             <div class="flex justify-between">
                                 <span class="font-semibold">Category:</span>
                                 <span>{{ $enrollment->category ?? 'N/A' }}</span>
                             </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+
                             <div class="flex justify-between">
                                 <span class="font-semibold">School Year:</span>
-                                <span>{{ $enrollment->semester->academic_year ?? 'N/A' }}</span>
+                                <span>{{ $enrollment->semester->school_year ?? 'N/A' }}</span>
                             </div>
+
+                            <div class="flex justify-between">
+                                <span class="font-semibold">Grade Level:</span>
+                                <span>{{ $enrollment->grade_level_text ?? 'N/A' }}</span>
+                            </div>
+
+
                         </div>
 
-                        <!-- Course & Major in one full-width column -->
-                        <div class="grid grid-cols-2 gap-x-4 gap-y-2">
-                            <div class="flex justify-between">
-                                <span class="font-semibold">Course:</span>
-                                <span>{{ $enrollment->course->course_name ?? 'N/A' }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="font-semibold">Major:</span>
-                                <span>{{ $enrollment->course->major ?? 'N/A' }}</span>
-                            </div>
-                        </div>
+                        <!-- Course & Major -->
+
                     </div>
 
-
-                    @if($enrollment->subjects->isNotEmpty())
+                    <!-- SUBJECT OFFERINGS TABLE -->
+                    @if($enrollment->subjectOfferings->isNotEmpty())
                     <table class="w-full border-collapse border border-gray-300 dark:border-gray-600">
                         <thead class="bg-gray-200 dark:bg-gray-700">
                             <tr>
@@ -125,28 +103,31 @@
                                 <th class="border px-4 py-2 text-left">Days</th>
                                 <th class="border px-4 py-2 text-left">Time</th>
                                 <th class="border px-4 py-2 text-left">Room</th>
-                                <th class="border px-4 py-2 text-left">Professor</th>
+                                <th class="border px-4 py-2 text-left">Teacher</th>
                             </tr>
                         </thead>
+
                         <tbody>
-                            @foreach ($enrollment->subjects as $subject)
+                            @foreach ($enrollment->subjectOfferings as $offering)
                             <tr>
-                                <td class="border px-4 py-2">{{ $subject->code }}</td>
-                                <td class="border px-4 py-2">{{ $subject->units }}</td>
-                                <td class="border px-4 py-2">{{ $subject->formatted_days }}</td>
-                                <td class="border px-4 py-2">{{ $subject->class_time }}</td>
-                                <td class="border px-4 py-2">{{ $subject->room }}</td>
+                                <td class="border px-4 py-2">{{ $offering->subject->code ?? 'N/A' }}</td>
+                                <td class="border px-4 py-2">{{ $offering->subject->units ?? 'N/A' }}</td>
+                                <td class="border px-4 py-2">{{ $offering->formatted_days ?? 'N/A' }}</td>
+                                <td class="border px-4 py-2">{{ $offering->class_time ?? 'N/A' }}</td>
+                                <td class="border px-4 py-2">{{ $offering->room ?? 'N/A' }}</td>
                                 <td class="border px-4 py-2">
-                                    {{ $subject->professor->fullname ?? 'N/A' }}
+                                    {{ $offering->teacher->fullname ?? 'N/A' }}
                                 </td>
                             </tr>
                             @endforeach
                         </tbody>
                     </table>
+
                     @else
                     <p class="text-gray-500 dark:text-gray-400">No subjects enrolled.</p>
                     @endif
                 </div>
+
 
 
                 <!-- Fees Tab -->
@@ -164,22 +145,26 @@
                             <tr>
                                 <td class="border px-4 py-2">Tuition Fee</td>
                                 <td class="border px-4 py-2 text-right">
-                                    {{ number_format($enrollment->fees->tuition_fee, 2) }}</td>
+                                    {{ number_format($enrollment->fees->tuition_fee, 2) }}
+                                </td>
                             </tr>
                             <tr>
                                 <td class="border px-4 py-2">Lab Fee</td>
                                 <td class="border px-4 py-2 text-right">
-                                    {{ number_format($enrollment->fees->lab_fee, 2) }}</td>
+                                    {{ number_format($enrollment->fees->lab_fee, 2) }}
+                                </td>
                             </tr>
                             <tr>
                                 <td class="border px-4 py-2">Miscellaneous Fee</td>
                                 <td class="border px-4 py-2 text-right">
-                                    {{ number_format($enrollment->fees->miscellaneous_fee, 2) }}</td>
+                                    {{ number_format($enrollment->fees->miscellaneous_fee, 2) }}
+                                </td>
                             </tr>
                             <tr>
                                 <td class="border px-4 py-2">Other Fee</td>
                                 <td class="border px-4 py-2 text-right">
-                                    {{ number_format($enrollment->fees->other_fee, 2) }}</td>
+                                    {{ number_format($enrollment->fees->other_fee, 2) }}
+                                </td>
                             </tr>
                             <tr>
                                 <td class="border px-4 py-2">Initial Payment</td>
@@ -221,28 +206,35 @@
                             <tr>
                                 <td class="border px-4 py-2">Prelims Payment</td>
                                 <td class="border px-4 py-2 text-right">
-                                    {{ number_format($payment->prelims_payment ?? 0, 2) }}</td>
+                                    {{ number_format($payment->prelims_payment ?? 0, 2) }}
+                                </td>
                                 <td class="border px-4 py-2 text-center">
-                                    {{ $payment->prelims_paid ? 'Paid' : 'Pending' }}</td>
+                                    {{ $payment->prelims_paid ? 'Paid' : 'Pending' }}
+                                </td>
                             </tr>
                             <tr>
                                 <td class="border px-4 py-2">Midterms Payment</td>
                                 <td class="border px-4 py-2 text-right">
-                                    {{ number_format($payment->midterms_payment ?? 0, 2) }}</td>
+                                    {{ number_format($payment->midterms_payment ?? 0, 2) }}
+                                </td>
                                 <td class="border px-4 py-2 text-center">
-                                    {{ $payment->midterms_paid ? 'Paid' : 'Pending' }}</td>
+                                    {{ $payment->midterms_paid ? 'Paid' : 'Pending' }}
+                                </td>
                             </tr>
                             <tr>
                                 <td class="border px-4 py-2">Pre-final Payment</td>
                                 <td class="border px-4 py-2 text-right">
-                                    {{ number_format($payment->pre_final_payment ?? 0, 2) }}</td>
+                                    {{ number_format($payment->pre_final_payment ?? 0, 2) }}
+                                </td>
                                 <td class="border px-4 py-2 text-center">
-                                    {{ $payment->pre_final_paid ? 'Paid' : 'Pending' }}</td>
+                                    {{ $payment->pre_final_paid ? 'Paid' : 'Pending' }}
+                                </td>
                             </tr>
                             <tr>
                                 <td class="border px-4 py-2">Final Payment</td>
                                 <td class="border px-4 py-2 text-right">
-                                    {{ number_format($payment->final_payment ?? 0, 2) }}</td>
+                                    {{ number_format($payment->final_payment ?? 0, 2) }}
+                                </td>
                                 <td class="border px-4 py-2 text-center">{{ $payment->final_paid ? 'Paid' : 'Pending' }}
                                 </td>
                             </tr>
@@ -282,12 +274,14 @@
                             <tr>
                                 <td class="py-2 px-4 border">Company Name</td>
                                 <td class="py-2 px-4 border">
-                                    {{ $enrollment->financialInformation->company_name ?? 'N/A' }}</td>
+                                    {{ $enrollment->financialInformation->company_name ?? 'N/A' }}
+                                </td>
                             </tr>
                             <tr>
                                 <td class="py-2 px-4 border">Company Address</td>
                                 <td class="py-2 px-4 border">
-                                    {{ $enrollment->financialInformation->company_address ?? 'N/A' }}</td>
+                                    {{ $enrollment->financialInformation->company_address ?? 'N/A' }}
+                                </td>
                             </tr>
                             <tr>
                                 <td class="py-2 px-4 border">Income</td>
@@ -297,7 +291,8 @@
                             <tr>
                                 <td class="py-2 px-4 border">Scholarship</td>
                                 <td class="py-2 px-4 border">
-                                    {{ $enrollment->financialInformation->scholarship ?? 'N/A' }}</td>
+                                    {{ $enrollment->financialInformation->scholarship ?? 'N/A' }}
+                                </td>
                             </tr>
                         </tbody>
                     </table>

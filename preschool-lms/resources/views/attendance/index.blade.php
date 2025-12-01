@@ -1,66 +1,65 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="text-xl font-semibold text-gray-800">📋 Attendance Records</h2>
+    </x-slot>
 
-@section('content')
-<div class="max-w-full mx-auto p-6 bg-white shadow rounded">
-    <h2 class="text-xl font-bold mb-4">Attendance - Class A</h2>
+    <div class="p-6 bg-white shadow rounded-lg">
+        <form method="GET" class="flex flex-wrap gap-4 mb-4">
+            <div>
+                <label class="font-semibold">Filter by Subject:</label>
+                <select name="subject_offering_id" class="border rounded p-2">
+                    <option value="all">All</option>
+                    @foreach ($subjectOfferings as $offering)
+                        <option value="{{ $offering->id }}" {{ request('subject_offering_id') == $offering->id ? 'selected' : '' }}>
+                            {{ $offering->subject->name ?? 'Unknown Subject' }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-    <!-- Hardcoded Month -->
-    <p class="mb-2 font-medium">September 2025</p>
+            <div>
+                <label class="font-semibold">Date:</label>
+                <input type="date" name="date" value="{{ request('date') }}" class="border rounded p-2">
+            </div>
 
-    <form method="POST" action="#">
-        @csrf
-
-        @php
-            use Carbon\Carbon;
-            use Carbon\CarbonPeriod;
-
-            // Hardcoded students
-            $students = ['John Doe', 'Jane Smith', 'Alice Brown'];
-
-            // Generate all dates in September 2025
-            $period = CarbonPeriod::create('2025-09-01', '2025-09-30');
-            $dates = [];
-            foreach ($period as $date) {
-                $dates[] = $date->toDateString();
-            }
-        @endphp
+            <div class="flex items-end">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Filter</button>
+            </div>
+        </form>
 
         <div class="overflow-x-auto">
-            <table class="table-auto border-collapse border border-gray-300 w-full text-sm">
-                <thead class="bg-gray-100">
-                    <tr>
-                        <th class="border px-2 py-1">Student</th>
-                        @foreach($dates as $date)
-                            <th class="border px-2 py-1 text-center">
-                                {{ Carbon::parse($date)->format('d') }}
-                            </th>
-                        @endforeach
+            <table class="min-w-full border">
+                <thead>
+                    <tr class="bg-gray-100 text-left">
+                        <th class="p-2 border">Date</th>
+                        <th class="p-2 border">Subject</th>
+                        <th class="p-2 border">Teacher</th>
+                        <th class="p-2 border">Topic</th>
+                        <th class="p-2 border text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($students as $student)
+                    @forelse ($sessions as $session)
                         <tr>
-                            <td class="border px-2 py-1 font-medium">{{ $student }}</td>
-                            @foreach($dates as $date)
-                                <td class="border px-2 py-1 text-center">
-                                    <select name="attendance[{{ $student }}][{{ $date }}]"
-                                            class="border rounded p-1 text-xs">
-                                        <option value="">-</option>
-                                        <option value="present">P</option>
-                                        <option value="absent">A</option>
-                                        <option value="late">L</option>
-                                    </select>
-                                </td>
-                            @endforeach
+                            <td class="p-2 border">{{ $session->date->format('M d, Y') }}</td>
+                            <td class="p-2 border">{{ $session->subjectOffering->subject->name ?? 'N/A' }}</td>
+                            <td class="p-2 border">{{ $session->subjectOffering->teacher->name ?? 'N/A' }}</td>
+                            <td class="p-2 border">{{ $session->topic ?? '-' }}</td>
+                            <td class="p-2 border text-center">
+                                <a href="{{ route('attendance.create', $session->subject_offering_id) }}" class="text-blue-600 hover:underline">Take Attendance</a>
+                            </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center p-4 text-gray-500">No attendance sessions found.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
 
-        <button type="submit" class="mt-4 bg-green-500 text-white px-4 py-2 rounded">
-            Save Attendance
-        </button>
-    </form>
-</div>
-@endsection
+        <div class="mt-4">
+            {{ $sessions->links() }}
+        </div>
+    </div>
+</x-app-layout>

@@ -13,7 +13,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\Auth\RegisteredTeacherUserController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DepartmentController;
-use App\Http\Controllers\StudentSubjectController;
+use App\Http\Controllers\SectionController;
 use App\Http\Controllers\TeacherGradingController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\PaymentController;
@@ -23,6 +23,8 @@ use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\SubjectOfferingController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\GradeLevelController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -67,6 +69,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
 
     // Handle teacher registration form submission
     Route::post('/admin/register-teacher', [RegisteredTeacherUserController::class, 'store']);
+    Route::resource('grade-levels', GradeLevelController::class);
+    Route::resource('sections', SectionController::class);
+    Route::get('/sections/by-grade/{grade}', [SectionController::class, 'byGrade']);
 });
 
 
@@ -138,29 +143,27 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
         ->parameters(['teacher' => 'teacher_id'])
         ->except(['show']); // Exclude 'show' because it's restricted to teachers only
 
+
+
     Route::get('subject_assignment', [SubjectOfferingController::class, 'index'])
         ->name('subject_assignment.index');
 
-    // CREATE
     Route::get('subject_assignment/create', [SubjectOfferingController::class, 'create'])
         ->name('subject_assignment.create');
 
-    // STORE
     Route::post('subject_assignment/store', [SubjectOfferingController::class, 'store'])
         ->name('subject_assignment.store');
 
-    // EDIT
     Route::get('subject_assignment/{id}/edit', [SubjectOfferingController::class, 'edit'])
         ->name('subject_assignment.edit');
 
-    // UPDATE
     Route::post('subject_assignment/{id}/update', [SubjectOfferingController::class, 'update'])
-        ->name('subject_assignment.update'); // Use POST to simplify
+        ->name('subject_assignment.update');
 
-    // DELETE
-    Route::post('subject_assignment/{id}/delete', [SubjectOfferingController::class, 'destroy'])
-        ->name('subject_assignment.destroy'); // Use POST
+    Route::delete('subject_assignment/{id}/delete', [SubjectOfferingController::class, 'destroy'])
+        ->name('subject_assignment.destroy');
 });
+
 
 Route::middleware(['auth', 'verified', 'role:teacher|admin'])->group(function () {
     Route::get('teachers/{teacher_id}', [TeacherController::class, 'show'])
@@ -181,6 +184,21 @@ Route::get('/get-subjects', [EnrollmentController::class, 'getSubjects'])->name(
 Route::get('/teacher-list', [TeacherController::class, 'getTeachers']);
 
 
+Route::prefix('attendance')
+    ->middleware(['auth', 'verified', 'role:teacher|admin'])
+    ->group(function () {
+        Route::get('/', [AttendanceController::class, 'index'])
+            ->name('attendance.index');
+
+        Route::get('/teacher/subjects', [AttendanceController::class, 'teacherSubjects'])
+            ->name('attendance.teacherSubjects');
+
+        Route::get('{subjectOffering}/create', [AttendanceController::class, 'create'])
+            ->name('attendance.create');
+
+        Route::post('{subjectOffering}', [AttendanceController::class, 'store'])
+            ->name('attendance.store');
+    });
 
 
 

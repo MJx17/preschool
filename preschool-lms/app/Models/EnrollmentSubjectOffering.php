@@ -9,7 +9,7 @@ class EnrollmentSubjectOffering extends Model
 {
     use HasFactory;
 
-    protected $table = 'enrollment_subject_offering'; // explicit because not pluralized
+    protected $table = 'enrollment_subject_offering';
 
     protected $fillable = [
         'enrollment_id',
@@ -18,17 +18,13 @@ class EnrollmentSubjectOffering extends Model
         'status',
     ];
 
-    /**
-     * Relationships
-     */
+    /** Relationships */
 
-    // The enrollment this row belongs to
     public function enrollment()
     {
         return $this->belongsTo(Enrollment::class);
     }
 
-    // The subject offering (class section) this row belongs to
     public function subjectOffering()
     {
         return $this->belongsTo(SubjectOffering::class);

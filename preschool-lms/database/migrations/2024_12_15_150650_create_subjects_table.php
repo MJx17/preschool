@@ -13,26 +13,24 @@ return new class extends Migration
     {
         // Create the subjects table
         Schema::create('subjects', function (Blueprint $table) {
-        $table->id();
-        $table->string('name'); // Subject name (e.g., Math, English)
-        $table->string('code')->unique(); // Unique subject code (e.g., MATH101)
-        $table->decimal('units', 3, 1)->unsigned(); // e.g., 3.0
-        $table->decimal('fee', 10, 2)->nullable(); // optional
-        $table->enum('grade_level', [
-            'nursery','kinder','grade_1','grade_2','grade_3'
-        ]);
+            $table->id();
+            $table->string('name'); // Subject name (e.g., Math, English)
+            $table->string('code')->unique(); // Unique subject code (e.g., MATH101)
+            $table->decimal('units', 3, 1)->unsigned(); // e.g., 3.0
+            $table->decimal('fee', 10, 2)->nullable(); // optional
+            $table->foreignId('grade_level_id')
+                ->constrained('grade_levels')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
 
-        // 👇 prerequisite_id column + foreign key
-        $table->foreignId('prerequisite_id')
-            ->nullable()
-            ->constrained('subjects')
-            ->nullOnDelete();
+            // 👇 prerequisite_id column + foreign key
+            $table->foreignId('prerequisite_id')
+                ->nullable()
+                ->constrained('subjects')
+                ->nullOnDelete();
 
-        $table->timestamps();
-    });
-
-
-      
+            $table->timestamps();
+        });
     }
 
     /**
