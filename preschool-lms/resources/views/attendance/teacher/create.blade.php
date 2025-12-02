@@ -16,7 +16,7 @@
             });
         }}"
     >
-        <form action="{{ route('attendance.store', $subjectOffering->id) }}" method="POST">
+        <form action="{{ route('attendance.teacher.store', $subjectOffering->id) }}" method="POST">
             @csrf
 
             {{-- Date & Topic --}}
@@ -84,7 +84,7 @@
 
             {{-- Submit --}}
             <div class="mt-6 text-right">
-                <a href="{{ route('attendance.index') }}" class="inline-block bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2 hover:bg-gray-400">Cancel</a>
+                <a href="{{ route('attendance.teacher.index') }}" class="inline-block bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2 hover:bg-gray-400">Cancel</a>
                 <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
                     💾 Save Attendance
                 </button>

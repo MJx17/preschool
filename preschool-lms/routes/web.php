@@ -184,23 +184,33 @@ Route::get('/get-subjects', [EnrollmentController::class, 'getSubjects'])->name(
 Route::get('/teacher-list', [TeacherController::class, 'getTeachers']);
 
 
-Route::prefix('attendance')
-    ->middleware(['auth', 'verified', 'role:teacher|admin'])
+// ----------------------
+// Admin Routes
+Route::prefix('admin/attendance')
+    ->middleware(['auth', 'verified', 'role:admin'])
     ->group(function () {
-        Route::get('/', [AttendanceController::class, 'index'])
-            ->name('attendance.index');
-
-        Route::get('/teacher/subjects', [AttendanceController::class, 'teacherSubjects'])
-            ->name('attendance.teacherSubjects');
-
-        Route::get('{subjectOffering}/create', [AttendanceController::class, 'create'])
-            ->name('attendance.create');
-
-        Route::post('{subjectOffering}', [AttendanceController::class, 'store'])
-            ->name('attendance.store');
+        Route::get('/', [AttendanceController::class, 'adminIndex'])->name('attendance.admin.index');
+        Route::get('{subjectOfferingId}/view', [AttendanceController::class, 'adminView'])->name('attendance.admin.view');
     });
 
+// Teacher Routes
+Route::prefix('attendance')
+    ->middleware(['auth', 'verified', 'role:teacher'])
+    ->group(function () {
+        Route::get('/', [AttendanceController::class, 'teacherIndex'])->name('attendance.teacher.index');
 
+        // ✅ Specific routes first
+        Route::get('{subjectOfferingId}/create', [AttendanceController::class, 'create'])->name('attendance.teacher.create');
+        Route::get('{subjectOfferingId}/view', [AttendanceController::class, 'teacherView'])->name('attendance.teacher.view');
+
+        // Generic POST for storing attendance
+        Route::post('{subjectOfferingId}', [AttendanceController::class, 'store'])->name('attendance.teacher.store');
+
+        // Session edit/update/delete
+        Route::get('session/{session}/edit', [AttendanceController::class, 'edit'])->name('attendance.teacher.edit');
+        Route::put('session/{session}', [AttendanceController::class, 'update'])->name('attendance.teacher.update');
+        Route::delete('session/{session}', [AttendanceController::class, 'destroy'])->name('attendance.teacher.destroy');
+    });
 
 // Route to show the subjects in a view (no download yet)
 Route::get('/subjects-pdf', [SubjectPdfController::class, 'showSubjectsPDF'])->name('subjects-pdf');

@@ -37,7 +37,7 @@
                             <th class="px-4 py-2 text-left">Teacher</th>
                             <th class="px-4 py-2 text-left">Schedule</th>
                             <th class="px-4 py-2 text-left">Room</th>
-                            <th class="px-4 py-2 text-left">Block</th>
+                            <th class="px-4 py-2 text-left">Section</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,7 +57,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-2">{{ $subjectOffering->room }}</td>
-                            <td class="px-4 py-2">{{ $subjectOffering->block }}</td>
+                            <td class="px-4 py-2">{{ $subjectOffering->section->name }}</td>
                         </tr>
                         @endforeach
                     </tbody>

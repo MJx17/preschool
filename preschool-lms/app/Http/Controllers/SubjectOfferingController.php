@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SubjectOffering;
 use App\Models\Subject;
+use App\Models\Section;
 use App\Models\Semester;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
@@ -12,15 +13,29 @@ use Illuminate\Support\Facades\Log;
 class SubjectOfferingController extends Controller
 {
     // LIST
-    public function index()
+    public function index(Request $request)
     {
-        $subjectAssignments = SubjectOffering::with(['subject', 'semester', 'teacher.user'])
-            ->orderBy('semester_id')
-            ->orderBy('block')
-            ->get();
+        $query = SubjectOffering::query()->with(['subject', 'semester', 'teacher.user', 'section']);
 
-        return view('subject_assignment.index', compact('subjectAssignments'));
+        if ($request->filled('teacher_id')) {
+            $query->where('teacher_id', $request->teacher_id);
+        }
+
+        if ($request->filled('section')) {
+            $query->whereHas('section', function ($q) use ($request) {
+                $q->where('name', $request->section);
+            });
+        }
+
+        $subjectAssignments = $query->get();
+
+        // For filter dropdowns
+        $teachers = Teacher::with('user')->get();
+        $sections = Section::all();
+
+        return view('subject_assignment.index', compact('subjectAssignments', 'teachers', 'sections'));
     }
+
 
     // CREATE FORM
     public function create()

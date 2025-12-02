@@ -62,12 +62,10 @@
 
         <!-- 🧑‍🏫 Teacher links -->
         @if(auth()->user()?->hasRole('teacher'))
-        <a href="{{ route('attendance.teacherSubjects') }}" class="block px-4 py-2 hover:bg-gray-200">
-            📚 My Subjects
-        </a>
+   
         <a href="{{ route('teachers.subjects', auth()->user()->teacher->id) }}"
             class="block px-4 py-2 hover:bg-gray-200">📚Subjects</a>
-        <a href="{{ route('attendance.index') }}" class="block px-4 py-2 hover:bg-gray-200">
+        <a href="{{ route('attendance.teacher.index') }}" class="block px-4 py-2 hover:bg-gray-200">
             📝 Attendance
         </a>
         <a href="{{ route('homeworks.index') }}" class="block px-4 py-2 hover:bg-gray-200">

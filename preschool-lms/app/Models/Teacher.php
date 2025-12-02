@@ -42,4 +42,9 @@ class Teacher extends Model
     {
         return $this->first_name . ' ' . $this->surname;
     }
+
+    public function subjectOfferings()
+    {
+        return $this->hasMany(SubjectOffering::class);
+    }
 }
