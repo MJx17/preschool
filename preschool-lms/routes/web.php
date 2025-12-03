@@ -196,21 +196,33 @@ Route::prefix('admin/attendance')
 // Teacher Routes
 Route::prefix('attendance')
     ->middleware(['auth', 'verified', 'role:teacher'])
+    ->name('attendance.teacher.')
     ->group(function () {
-        Route::get('/', [AttendanceController::class, 'teacherIndex'])->name('attendance.teacher.index');
 
-        // ✅ Specific routes first
-        Route::get('{subjectOfferingId}/create', [AttendanceController::class, 'create'])->name('attendance.teacher.create');
-        Route::get('{subjectOfferingId}/view', [AttendanceController::class, 'teacherView'])->name('attendance.teacher.view');
+        Route::get('/', [AttendanceController::class, 'teacherIndex'])
+            ->name('index');
 
-        // Generic POST for storing attendance
-        Route::post('{subjectOfferingId}', [AttendanceController::class, 'store'])->name('attendance.teacher.store');
+        // Sessions (add static prefix)
+        Route::get('session/{subjectOfferingId}/create', [AttendanceController::class, 'create'])
+            ->name('create');
 
-        // Session edit/update/delete
-        Route::get('session/{session}/edit', [AttendanceController::class, 'edit'])->name('attendance.teacher.edit');
-        Route::put('session/{session}', [AttendanceController::class, 'update'])->name('attendance.teacher.update');
-        Route::delete('session/{session}', [AttendanceController::class, 'destroy'])->name('attendance.teacher.destroy');
+        Route::get('session/{subjectOfferingId}/view', [AttendanceController::class, 'teacherView'])
+            ->name('view');
+
+        Route::post('session/{subjectOfferingId}', [AttendanceController::class, 'store'])
+            ->name('store');
+
+        // Edit/update/delete sessions
+        Route::get('session/{session}/edit', [AttendanceController::class, 'edit'])
+            ->name('edit');
+
+        Route::put('session/{session}', [AttendanceController::class, 'update'])
+            ->name('update');
+
+        Route::delete('session/{session}', [AttendanceController::class, 'destroy'])
+            ->name('destroy');
     });
+
 
 // Route to show the subjects in a view (no download yet)
 Route::get('/subjects-pdf', [SubjectPdfController::class, 'showSubjectsPDF'])->name('subjects-pdf');

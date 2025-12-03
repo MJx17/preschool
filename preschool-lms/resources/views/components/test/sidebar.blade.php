@@ -50,21 +50,14 @@
         <a href="{{ route('subject_assignment.index') }}" class="block px-4 py-2 hover:bg-gray-200">Subject Schedule</a>
         @endif
 
-        <!-- Professor links -->
-        @if(auth()->user()?->hasRole('professor'))
-        <a href="{{ route('professors.subjects', auth()->user()->professor->id) }}"
-            class="block px-4 py-2 hover:bg-gray-200">Subjects</a>
-        <a href="{{ route('professors.show', auth()->user()->professor->id) }}"
-            class="block px-4 py-2 hover:bg-gray-200">Assessment</a>
-        <a href="{{ route('professors.profile', auth()->user()->professor->id) }}"
-            class="block px-4 py-2 hover:bg-gray-200">Details</a>
-        @endif
+
 
         <!-- 🧑‍🏫 Teacher links -->
         @if(auth()->user()?->hasRole('teacher'))
-   
+
         <a href="{{ route('teachers.subjects', auth()->user()->teacher->id) }}"
-            class="block px-4 py-2 hover:bg-gray-200">📚Subjects</a>
+            class="block px-4 py-2 hover:bg-gray-200">📚 Subjects & Attendance
+        </a>
         <a href="{{ route('attendance.teacher.index') }}" class="block px-4 py-2 hover:bg-gray-200">
             📝 Attendance
         </a>

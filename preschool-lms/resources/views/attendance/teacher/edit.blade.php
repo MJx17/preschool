@@ -1,44 +1,87 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Enrollment Details') }}
+            Edit Attendance - {{ $session->subjectOffering->subject->name }}
         </h2>
     </x-slot>
 
     <div class="py-6">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                <!-- Student Information -->
-                <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-200">Student Information</h3>
-                <p class="mb-2 text-gray-700 dark:text-gray-300"><strong>Name:</strong> {{ $enrollment->student->name }}</p>
-                <p class="mb-4 text-gray-700 dark:text-gray-300"><strong>Student ID:</strong> {{ $enrollment->student->id }}</p>
 
-                <!-- Enrolled Subjects -->
-                <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-200">Enrolled Subjects</h3>
-                @if($enrollment->subjectOfferings->isNotEmpty())
-                    <ul class="list-disc list-inside mb-4 text-gray-700 dark:text-gray-300">
-                        @foreach ($enrollment->subjectOfferings as $subject)
-                            <li>{{ $subject->name }} ({{ $subject->code }})</li>
-                        @endforeach
-                    </ul>
-                @else
-                    <p class="text-gray-500 dark:text-gray-400">No subjects enrolled.</p>
-                @endif
+                <form action="{{ route('attendance.teacher.update', $session->id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
 
-                <!-- Tuition Fees -->
-                <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-200">Tuition Fees</h3>
-                @if($enrollment->fees)
-                    <p class="text-gray-700 dark:text-gray-300"><strong>Total Fees:</strong> ₱{{ number_format($enrollment->fees->total ?? 0, 2) }}</p>
-                @else
-                    <p class="text-gray-500 dark:text-gray-400">Fees have not been set for this enrollment.</p>
-                @endif
+                    <!-- Session Details -->
+                    <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-200">Session Details</h3>
 
-                <!-- Back Link -->
-                <div class="mt-6">
-                    <a href="{{ route('enrollments.index') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition">
-                        Back to Enrollment List
-                    </a>
-                </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 dark:text-gray-300 font-medium">Topic</label>
+                        <input type="text" name="topic" value="{{ $session->topic }}"
+                            class="w-full p-2 border dark:bg-gray-700 dark:text-white rounded">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-700 dark:text-gray-300 font-medium">Date</label>
+                        <input type="date" name="date" value="{{ $session->date }}"
+                            class="w-full p-2 border dark:bg-gray-700 dark:text-white rounded">
+                    </div>
+
+                    <!-- Student Attendance Records -->
+                    <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-200">Student Attendance</h3>
+
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="border-b py-2">Student</th>
+                                <th class="border-b py-2">Status</th>
+                                <th class="border-b py-2">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($session->attendanceRecords as $record)
+                            <tr>
+                                <td class="py-2 text-gray-800 dark:text-gray-300">
+                                    {{ $record->student->name }}
+                                </td>
+
+                                <td class="py-2">
+                                    <select name="status[{{ $record->id }}]"
+                                        class="p-2 border rounded dark:bg-gray-700 dark:text-white">
+                                        <option value="Present" {{ $record->status == 'Present' ? 'selected' : '' }}>Present</option>
+                                        <option value="Absent" {{ $record->status == 'Absent' ? 'selected' : '' }}>Absent</option>
+                                        <option value="Late" {{ $record->status == 'Late' ? 'selected' : '' }}>Late</option>
+                                        <option value="Excused" {{ $record->status == 'Excused' ? 'selected' : '' }}>Excused</option>
+
+                                    </select>
+                                </td>
+
+                                <td class="py-2">
+                                    <input type="text"
+                                        name="remarks[{{ $record->id }}]"
+                                        value="{{ $record->remarks }}"
+                                        class="w-full p-2 border dark:bg-gray-700 dark:text-white rounded">
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+
+                    <!-- Submit -->
+                    <div class="mt-6">
+                        <button class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">
+                            Save Changes
+                        </button>
+
+                        <a href="{{ route('attendance.teacher.view', $session->subject_offering_id) }}"
+                            class="ml-3 text-gray-600 dark:text-gray-300 hover:underline">
+                            Cancel
+                        </a>
+                    </div>
+
+                </form>
+
             </div>
         </div>
     </div>
