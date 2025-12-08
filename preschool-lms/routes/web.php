@@ -47,9 +47,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::resource('lessons', LessonController::class);
-Route::resource('homeworks', HomeworkController::class);
-Route::resource('quizzes', QuizController::class);
+
+
 Route::resource('questions', QuestionController::class);
 
 Route::get('/contact', [ContactController::class, 'showForm']);
@@ -72,6 +71,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::resource('grade-levels', GradeLevelController::class);
     Route::resource('sections', SectionController::class);
     Route::get('/sections/by-grade/{grade}', [SectionController::class, 'byGrade']);
+    Route::get('/sections/grade/{gradeLevelId}', [SectionController::class, 'byGrade']);
 });
 
 
@@ -80,7 +80,8 @@ Route::middleware(['auth', 'verified', 'role:admin|student'])->group(function ()
     Route::get('/student/create', [StudentController::class, 'create'])->name('student.create');
     Route::post('/student', [StudentController::class, 'store'])->name('student.store');
     Route::get('/student-info', [StudentController::class, 'indexStudent'])->name('student.indexStudent');
-
+    Route::get('/student/subjects', [StudentController::class, 'subjects'])
+    ->name('student_subject.subjects');
     Route::get('/enrollments/{id}/details', [EnrollmentController::class, 'fees'])->name('enrollments.fees');
 });
 
@@ -176,10 +177,17 @@ Route::middleware(['auth', 'verified', 'role:teacher|admin'])->group(function ()
         ->name('teachers.profile');
     Route::get('teacher/subjects/{subjectId}/students', [TeacherGradingController::class, 'showStudentsForGrading'])->name('teachers.grade_students');
     Route::put('teacher/subjects/{subjectId}/grades', [TeacherGradingController::class, 'updateGrades'])->name('teacher.updateGrades');
+    Route::get('/teachers/grade-students/{subjectOfferingId}/view', [TeacherGradingController::class, 'viewGrades'])->name('teachers.viewGrades');
+
+
+    Route::resource('lessons', LessonController::class);
+    Route::resource('homeworks', HomeworkController::class);
+    Route::resource('quizzes', QuizController::class);
+    Route::get('admin/lessons', [LessonController::class, 'adminIndex'])->name('lessons.admin.index');
+     Route::get('admin/homeworks', [HomeworkController::class, 'adminIndex'])->name('homeworks.admin.index');
 });
 
-
-
+    // Route::get('/subject-list', [SubjectController::class, 'byGradeLevel']);
 Route::get('/get-subjects', [EnrollmentController::class, 'getSubjects'])->name('get.subjects');
 Route::get('/teacher-list', [TeacherController::class, 'getTeachers']);
 

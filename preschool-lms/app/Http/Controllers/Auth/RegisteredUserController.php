@@ -29,20 +29,31 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // ✅ Validate the request, including the username
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'username' => ['required', 'string', 'max:255', 'unique:' . User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        // ✅ Create the user without 'role_id'
         $user = User::create([
             'name' => $request->name,
+            'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'status' => 'pending', // Set status to 'pending' initially
+            'branch_id' => null,   // Set branch_id to null by default
         ]);
 
+        // ✅ Assign 'student' role via Spatie
+        $user->assignRole('student');
+
+        // ✅ Fire the Registered event
         event(new Registered($user));
 
+        // ✅ Log in the user
         Auth::login($user);
 
         return redirect(route('dashboard', absolute: false));

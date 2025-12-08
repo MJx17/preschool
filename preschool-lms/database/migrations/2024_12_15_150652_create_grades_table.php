@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('grades', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('student_id');
-            $table->unsignedBigInteger('subject_id');
+            $table->unsignedBigInteger('subject_offerings_id');
         
             // Per grading period
             $table->integer('first_grading')->nullable();
@@ -31,7 +31,7 @@ return new class extends Migration
             $table->timestamps();
         
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
-            $table->foreign('subject_id')->references('id')->on('subjects')->onDelete('cascade');
+            $table->foreign('subject_offerings_id')->references('id')->on('subject_offerings')->onDelete('cascade');
         });
         
     }

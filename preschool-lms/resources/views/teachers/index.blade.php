@@ -8,11 +8,11 @@
     <div class="container mx-auto py-8">
         <div class="flex justify-between mb-6">
             <div class="flex justify-between mb-6 gap-2">
-                <a href="{{ route('professors.create') }}"
+                <a href="{{ route('teachers.create') }}"
                     class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                     Add Professor
                 </a>
-                <a href="{{ route('register_professor') }}"
+                <a href="{{ route('register_teacher') }}"
                     class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                     New User
                 </a>
@@ -33,35 +33,35 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($professors as $professor)
+                    @foreach($teachers as $teacher)
                         <tr class="border-b hover:bg-gray-100 transition duration-300 ease-in-out">
-                            <td class="px-4 py-2 text-sm text-gray-800">{{ $professor->user_id }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-800">{{ $teacher->user_id }}</td>
                             <td class="px-4 py-2 text-sm text-gray-800">
-                                {{ $professor->first_name }} {{ $professor->middle_name }} {{ $professor->surname }}
+                                {{ $teacher->first_name }} {{ $teacher->middle_name }} {{ $teacher->surname }}
                             </td>
-                            <td class="px-4 py-2 text-sm text-gray-800">{{ $professor->email }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-800">{{ $professor->designation }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-800">{{ $teacher->email }}</td>
+                            <td class="px-4 py-2 text-sm text-gray-800">{{ $teacher->designation }}</td>
                             <td class="px-4 py-2 text-sm flex items-center space-x-2">
                                 <!-- Show Button -->
-                                <a href="{{ route('professors.show', $professor->id) }}"
+                                <a href="{{ route('teachers.show', $teacher->id) }}"
                                     class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-200">
                                     View
                                 </a>
 
                                 <!-- Edit Button -->
-                                <a href="{{ route('professors.edit', $professor->id) }}"
+                                <a href="{{ route('teachers.edit', $teacher->id) }}"
                                     class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-200">
                                     Edit
                                 </a>
 
                                 <!-- Delete Button (inside a form) -->
-                                <form id="delete-form-{{ $professor->id }}"
-                                    action="{{ route('professors.destroy', $professor->id) }}" method="POST">
+                                <form id="delete-form-{{ $teacher->id }}"
+                                    action="{{ route('teachers.destroy', $teacher->id) }}" method="POST">
                                     @csrf
                                     @method('DELETE')
                                     <button type="button"
                                         class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-200"
-                                        onclick="confirmDelete('delete-form-{{ $professor->id }}')">
+                                        onclick="confirmDelete('delete-form-{{ $teacher->id }}')">
                                         Delete
                                     </button>
                                 </form>
@@ -74,7 +74,7 @@
         </div>
 
         <div class="mt-6">
-            {{ $professors->links() }}
+            {{ $teachers->links() }}
         </div>
     </div>
 </x-app-layout>

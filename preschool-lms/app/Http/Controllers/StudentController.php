@@ -141,7 +141,7 @@ class StudentController extends Controller
         ]);
 
         // Redirect to home page with success message
-        return redirect()->route('home')->with('success', 'Student Application successful!');
+        return redirect()->route('dashboard')->with('success', 'Student Application successful!');
     }
 
    
@@ -282,6 +282,22 @@ class StudentController extends Controller
 
         // Return the view with the student's data
         return view('student.indexStudent', compact('student'));
+    }
+
+      public function subjects()
+    {
+        $student = Auth::user()->student;
+
+        // Get all subject offerings assigned via enrollment
+        $subjects = $student->enrollments()
+            ->with('enrollmentSubjectOfferings.subjectOffering.subject') // eager load
+            ->get()
+            ->flatMap(function ($enrollment) {
+                return $enrollment->enrollmentSubjectOfferings->map(fn($eso) => $eso->subjectOffering->subject);
+            })
+            ->unique('id'); // remove duplicates if any
+
+        return view('student.subjects', compact('subjects'));
     }
 
 

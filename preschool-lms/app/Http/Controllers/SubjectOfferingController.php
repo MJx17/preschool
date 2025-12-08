@@ -17,24 +17,34 @@ class SubjectOfferingController extends Controller
     {
         $query = SubjectOffering::query()->with(['subject', 'semester', 'teacher.user', 'section']);
 
+        // Teacher filter
         if ($request->filled('teacher_id')) {
             $query->where('teacher_id', $request->teacher_id);
         }
 
+        // Section filter
         if ($request->filled('section')) {
             $query->whereHas('section', function ($q) use ($request) {
                 $q->where('name', $request->section);
             });
         }
 
+        // Semester filter
+        if ($request->filled('semester_id')) {
+            $query->where('semester_id', $request->semester_id);
+        }
+
+        // Get the filtered subject assignments
         $subjectAssignments = $query->get();
 
         // For filter dropdowns
         $teachers = Teacher::with('user')->get();
         $sections = Section::all();
+        $semesters = Semester::all();
 
-        return view('subject_assignment.index', compact('subjectAssignments', 'teachers', 'sections'));
+        return view('subject_assignment.index', compact('subjectAssignments', 'teachers', 'sections', 'semesters'));
     }
+
 
 
     // CREATE FORM

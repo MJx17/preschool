@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Models\SubjectOffering;
+use App\Models\Semester;
 use Illuminate\Http\Request;
 
 class TeacherController extends Controller
@@ -120,32 +121,30 @@ class TeacherController extends Controller
         $teacher = Teacher::findOrFail($teacher_id);
         $user = auth()->user();
 
+        // Authorization: teachers can only view their own
         if ($user->hasRole('teacher') && optional($user->teacher)->id !== $teacher->id) {
             abort(403, 'Unauthorized access');
         }
 
-        $subjects = $teacher->subjects()->withCount('students')->with('students')->get();
+        // Get current active semester
+        $currentSemester = Semester::where('status', 'active')->first();
 
-        $dayShortcodes = [
-            'Monday' => 'M',
-            'Tuesday' => 'T',
-            'Wednesday' => 'W',
-            'Thursday' => 'Th',
-            'Friday' => 'F',
-            'Saturday' => 'Sa',
-            'Sunday' => 'Su'
-        ];
+        // Fetch teacher's subject offerings in active semester
+        $subjectOfferings = SubjectOffering::with([
+            'subject',
+            'section',
+            'enrollmentSubjectOfferings.enrollment.student',
+            'semester'
+        ])
+            ->where('teacher_id', $teacher->id)
+            ->where('semester_id', optional($currentSemester)->id)
+            ->get();
 
-        $subjects->transform(function ($subject) use ($dayShortcodes) {
-            $daysArray = is_array($subject->days) ? $subject->days : json_decode($subject->days, true);
-            $subject->formatted_days = collect($daysArray)
-                ->map(fn($day) => $dayShortcodes[$day] ?? $day)
-                ->implode(', ');
-            return $subject;
-        });
-
-        return view('teachers.show', compact('teacher', 'subjects'));
+        return view('teachers.show', compact('teacher', 'subjectOfferings'));
     }
+
+
+
 
     /** Only profile page */
     public function profile(Teacher $teacher)

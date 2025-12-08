@@ -14,19 +14,27 @@ class SubjectOffering extends Model
         'subject_id',
         'semester_id',
         'teacher_id',
-        'section',
+        'section_id',
         'room',
-        'days', // JSON array
+        'days',
         'start_time',
         'end_time',
     ];
 
+    /* ─────────────────────────────────────────────
+     |  Relationships
+     ───────────────────────────────────────────── */
 
-    /** ──────── Relationships ──────── */
     public function subject()
     {
         return $this->belongsTo(Subject::class);
     }
+    public function lessons()
+    {
+        return $this->hasMany(Lesson::class, 'subject_offerings_id'); // also specify the foreign key
+    }
+
+
 
     public function semester()
     {
@@ -40,34 +48,69 @@ class SubjectOffering extends Model
 
     public function section()
     {
-        return $this->belongsTo(Section::class); // optional
+        return $this->belongsTo(Section::class);
     }
 
-    public function enrollments()
+    public function grades()
     {
-        return $this->belongsToMany(Enrollment::class, 'enrollment_subject_offering')
-            ->withPivot(['grade', 'status', 'fee'])
-            ->withTimestamps();
+        return $this->hasMany(Grade::class, 'subject_offerings_id', 'id');
     }
 
+
+    /**
+     * Pivot: Enrollment ↔ SubjectOffering
+     */
     public function enrollmentSubjectOfferings()
     {
         return $this->hasMany(EnrollmentSubjectOffering::class);
     }
 
+    /**
+     * All enrollments attached to this subject offering
+     */
+    public function enrollments()
+    {
+        return $this->hasManyThrough(
+            Enrollment::class,
+            EnrollmentSubjectOffering::class,
+            'subject_offerings_id',   // FK on pivot
+            'id',                    // PK on enrollment
+            'id',                    // PK on subject offering
+            'enrollment_id'          // FK on pivot
+        );
+    }
+
+    /**
+     * All students enrolled in this subject offering
+     */
+    public function students()
+    {
+        return $this->hasManyThrough(
+            Student::class,
+            Enrollment::class,
+            'id',                    // enrollment.id
+            'id',                    // student.id
+            'id',                    // subject_offering.id
+            'student_id'             // enrollment.student_id
+        )->whereIn(
+            'enrollments.id',
+            $this->enrollmentSubjectOfferings()->pluck('enrollment_id')
+        );
+    }
+
+    /**
+     * Attendance Sessions (already correct)
+     */
     public function attendanceSessions()
     {
         return $this->hasMany(AttendanceSession::class);
     }
 
-    public function grades()
-    {
-        return $this->hasMany(Grade::class, 'subject_offering_id');
-    }
 
+    /* ─────────────────────────────────────────────
+     |  Accessors
+     ───────────────────────────────────────────── */
 
-
-    /** ──────── Accessors ──────── */
     public function getFormattedDaysAttribute()
     {
         $map = [
@@ -80,33 +123,30 @@ class SubjectOffering extends Model
             'Sunday'    => 'Su'
         ];
 
-        $daysArray = is_string($this->days) ? json_decode($this->days, true) : ($this->days ?? []);
+        $daysArray = is_string($this->days)
+            ? json_decode($this->days, true)
+            : ($this->days ?? []);
 
         return collect($daysArray)
             ->map(fn($d) => $map[$d] ?? '')
             ->implode(', ');
     }
 
-
-
     public function getClassTimeAttribute()
     {
-        $start = Carbon::parse($this->start_time)->format('g:i A'); // 12-hour format, strip leading zero
+        $start = Carbon::parse($this->start_time)->format('g:i A');
         $end   = Carbon::parse($this->end_time)->format('g:i A');
 
-        // Optional: Remove :00 for exact hours
         $start = preg_replace('/:00 /', ' ', $start);
         $end   = preg_replace('/:00 /', ' ', $end);
 
         return "$start - $end";
     }
 
-
-
     public function getGradeLevelTextAttribute()
     {
         if (empty($this->grade_level)) {
-            return null; // ensures ?? works in Blade
+            return null;
         }
 
         if (str_starts_with($this->grade_level, 'grade_')) {

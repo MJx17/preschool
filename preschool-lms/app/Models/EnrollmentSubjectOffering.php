@@ -29,4 +29,27 @@ class EnrollmentSubjectOffering extends Model
     {
         return $this->belongsTo(SubjectOffering::class);
     }
+
+    // Access the student via enrollment
+        public function student()
+    {
+        return $this->hasOneThrough(
+            Student::class,
+            Enrollment::class,
+            'id',           // Enrollment PK
+            'id',           // Student PK
+            'enrollment_id', // Local FK on this model
+            'student_id'    // FK on Enrollment table
+        );
+    }
+
+    // Grade relationship for this specific student + subject offering
+    public function grade()
+    {
+        // Ensure enrollment is loaded
+        $studentId = $this->enrollment->student_id ?? 0;
+
+        return $this->hasOne(Grade::class, 'subject_offerings_id', 'subject_offering_id')
+                    ->where('student_id', $studentId);
+    }
 }

@@ -11,18 +11,29 @@ return new class extends Migration {
             $table->id();
             $table->string('title');
             $table->text('description')->nullable();
+
+            // Optional lesson reference
             $table->foreignId('lesson_id')
-                  ->nullable()
-                  ->constrained()
-                  ->onDelete('cascade'); // quiz belongs to a lesson
+                ->nullable()
+                ->constrained()
+                ->onDelete('cascade');
+
+            // Required subject offering reference
+
             $table->integer('time_limit')->nullable(); // in minutes
 
+            // Status enum
             $table->enum('status', ['draft', 'published', 'archived'])
-                  ->default('draft'); // 👈 status column
+                ->default('draft');
+
+            // Type enum for low grade levels
+            $table->enum('type', ['short', 'long'])
+                ->default('short');
 
             $table->timestamps();
         });
     }
+
 
     public function down(): void
     {

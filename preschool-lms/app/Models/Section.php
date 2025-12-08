@@ -17,16 +17,20 @@ class Section extends Model
         return $this->belongsTo(GradeLevel::class);
     }
 
-    // Students DO NOT belong directly to a section.
-    // They belong through enrollments.
     public function enrollments()
     {
         return $this->hasMany(Enrollment::class);
     }
 
-    // Convenience relationship to get students
     public function students()
     {
-        return $this->hasManyThrough(Student::class, Enrollment::class, 'section_id', 'id', 'id', 'student_id');
+        return $this->hasManyThrough(
+            Student::class,
+            Enrollment::class,
+            'section_id',
+            'id',
+            'id',
+            'student_id'
+        );
     }
 }

@@ -2,8 +2,7 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
     <!-- Financial Information -->
     <div>
-        <h3 class="text-lg font-semibold text-blue-800 dark:text-white mb-5">Financial Information</h3>
-
+        
         <!-- Financier Select -->
         <div class="mb-4">
             <select name="financier" id="financier" class="mt-1 block w-full p-3 rounded-md border-gray-300 shadow-sm">

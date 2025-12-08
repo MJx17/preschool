@@ -45,22 +45,7 @@
                                     <td class="px-6 py-4 text-sm">{{ $offering->room ?? 'N/A' }}</td>
                                     <td class="px-6 py-4 text-sm">{{ $offering->block ?? 'N/A' }}</td>
 
-                                    {{-- ✅ Action Buttons --}}
-                                    <td class="px-6 py-4 text-center whitespace-nowrap">
-                                        <div class="flex justify-center space-x-2">
-
-
-                                            <a href="{{ route('grades.show', $offering->id) }}"
-                                                class="px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded hover:bg-green-700">
-                                                Grades
-                                            </a>
-
-                                            <a href="{{ route('students.list', $offering->id) }}"
-                                                class="px-3 py-1 bg-gray-600 text-white text-xs font-semibold rounded hover:bg-gray-700">
-                                                Students
-                                            </a>
-                                        </div>
-                                    </td>
+                               
                                 </tr>
                                 @endforeach
                             </tbody>

@@ -5,7 +5,7 @@
             
             <!-- Logo or Image -->
             <div class="flex justify-center mb-6">
-            <img src="{{ asset('logo.jpeg') }}" alt="logo" class="w-20 h-20 rounded-full">
+            <img src="{{ asset('logo.jpg') }}" alt="logo" class="w-20 h-20 rounded-full">
 
             </div>
         <form method="POST" action="{{ route('register') }}">

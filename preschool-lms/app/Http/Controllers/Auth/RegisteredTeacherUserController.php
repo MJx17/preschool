@@ -16,7 +16,7 @@ class RegisteredTeacherUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register_'); // View for admin to add teachers
+        return view('auth.register_teacher'); // View for admin to add teachers
     }
 
     /**

@@ -1,11 +1,11 @@
 <x-app-layout>
     <div class="max-w-2xl mx-auto bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md mt-6 border border-gray-200 dark:border-gray-800">
-        <form action="{{ route('professors.store') }}" method="POST" class="space-y-4">
+        <form action="{{ route('teachers.store') }}" method="POST" class="space-y-4">
             @csrf
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="user_id" class="block text-sm text-gray-700 dark:text-gray-300">Professor</label>
+                    <label for="user_id" class="block text-sm text-gray-700 dark:text-gray-300">teacher</label>
                     <select name="user_id" id="user_id" class="w-full border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white rounded-md p-2">
                         <option value="">-- Select --</option>
                         @foreach($users as $user)
@@ -60,7 +60,7 @@
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition">
                     Save
                 </button>
-                <a href="{{ route('professors.index') }}" class="px-4 py-2 bg-red-500 text-white text-sm font-semibold rounded-md hover:bg-red-600 focus:ring-2 focus:ring-gray-500">
+                <a href="{{ route('teachers.index') }}" class="px-4 py-2 bg-red-500 text-white text-sm font-semibold rounded-md hover:bg-red-600 focus:ring-2 focus:ring-gray-500">
                         Cancel
                  </a>
             </div>

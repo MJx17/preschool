@@ -24,4 +24,30 @@ class Homework extends Model
     {
         return $this->belongsTo(Lesson::class);
     }
+
+
+
+    public function teacher()
+    {
+        return $this->hasOneThrough(
+            Teacher::class,
+            Lesson::class,
+            'id', // Foreign key on Lesson
+            'id', // Foreign key on Teacher
+            'lesson_id', // Local key on Homework
+            'teacher_id' // Local key on Lesson
+        );
+    }
+
+    public function subjectOffering()
+    {
+        return $this->hasOneThrough(
+            SubjectOffering::class,
+            Lesson::class,
+            'id', // Foreign key on Lesson
+            'id', // Foreign key on SubjectOffering
+            'lesson_id', // Local key on Homework
+            'subject_offerings_id' // Local key on Lesson
+        );
+    }
 }

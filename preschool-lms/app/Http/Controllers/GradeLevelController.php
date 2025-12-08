@@ -11,13 +11,13 @@ class GradeLevelController extends Controller
     public function index()
     {
         $grades = GradeLevel::orderBy('id')->get();
-        return view('grade_levels.index', compact('grades'));
+        return view('grade-levels.index', compact('grades'));
     }
 
     // SHOW CREATE FORM
     public function create()
     {
-        return view('grade_levels.create');
+        return view('grade-levels.create');
     }
 
     // STORE NEW GRADE LEVEL
@@ -25,12 +25,12 @@ class GradeLevelController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:50',
-            'code' => 'required|string|max:20|unique:grade_levels,code',
+            'code' => 'required|string|max:20|unique:grade-levels,code',
         ]);
 
         GradeLevel::create($validated);
 
-        return redirect()->route('grade_levels.index')
+        return redirect()->route('grade-levels.index')
                          ->with('success', 'Grade Level created successfully!');
     }
 
@@ -38,7 +38,7 @@ class GradeLevelController extends Controller
     public function edit($id)
     {
         $grade = GradeLevel::findOrFail($id);
-        return view('grade_levels.edit', compact('grade'));
+        return view('grade-levels.edit', compact('grade'));
     }
 
     // UPDATE GRADE LEVEL
@@ -48,12 +48,12 @@ class GradeLevelController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:50',
-            'code' => 'required|string|max:20|unique:grade_levels,code,' . $grade->id,
+            'code' => 'required|string|max:20|unique:grade-levels,code,' . $grade->id,
         ]);
 
         $grade->update($validated);
 
-        return redirect()->route('grade_levels.index')
+        return redirect()->route('grade-levels.index')
                          ->with('success', 'Grade Level updated successfully!');
     }
 
@@ -63,7 +63,7 @@ class GradeLevelController extends Controller
         $grade = GradeLevel::findOrFail($id);
         $grade->delete();
 
-        return redirect()->route('grade_levels.index')
+        return redirect()->route('grade-levels.index')
                          ->with('success', 'Grade Level deleted successfully!');
     }
 }

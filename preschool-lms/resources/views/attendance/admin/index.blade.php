@@ -30,6 +30,7 @@
                     <th class="px-4 py-2 text-left">Semester</th>
                     <th class="px-4 py-2 text-left">Teacher</th>
                     <th class="px-4 py-2 text-left">Schedule</th>
+                    <th class="px-4 py-2 text-left">Time</th>
                     <th class="px-4 py-2 text-left">Room</th>
                     <th class="px-4 py-2 text-left">Section</th>
                     <th class="px-4 py-2 text-left">Actions</th>
@@ -47,6 +48,10 @@
                     <td class="px-4 py-2">
                         @if($subjectOffering->days)
                         {{ implode(', ', json_decode($subjectOffering->days,true)) }}
+                        @endif
+                    </td>
+                    <td class="px-4 py-2">
+                        @if($subjectOffering->days)
                         {{ $subjectOffering->start_time }} – {{ $subjectOffering->end_time }}
                         @endif
                     </td>

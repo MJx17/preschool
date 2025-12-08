@@ -1,15 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
-            {{ __('Edit Professor') }}
+            {{ __('Edit teacher') }}
         </h2>
     </x-slot>
 
     <div class="container mx-auto py-4">
         <div class="max-w-2xl mx-auto bg-white shadow-md rounded-md p-4">
-            <h1 class="text-xl font-semibold text-gray-800 mb-4">Edit Professor</h1>
+            <h1 class="text-xl font-semibold text-gray-800 mb-4">Edit teacher</h1>
 
-            <form action="{{ route('professors.update', $professor->id) }}" method="POST">
+            <form action="{{ route('teachers.update', $teacher->id) }}" method="POST">
                 @csrf
                 @method('PUT')
 
@@ -18,10 +18,10 @@
                         <div>
                             <label for="{{ $name }}" class="block text-xs font-medium text-gray-700">{{ $label }}</label>
                             @if($name === 'user_id')
-                                <input type="text" name="{{ $name }}" id="{{ $name }}" value="{{ old($name, $professor->$name) }}" 
+                                <input type="text" name="{{ $name }}" id="{{ $name }}" value="{{ old($name, $teacher->$name) }}" 
                                     class="mt-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" readonly>
                             @else
-                                <input type="text" name="{{ $name }}" id="{{ $name }}" value="{{ old($name, $professor->$name) }}" 
+                                <input type="text" name="{{ $name }}" id="{{ $name }}" value="{{ old($name, $teacher->$name) }}" 
                                     class="mt-1 w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             @endif
                             @error($name)
@@ -35,7 +35,7 @@
                     <button type="submit" class="px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-md hover:bg-blue-600 focus:ring-2 focus:ring-blue-500">
                         Update
                     </button>
-                    <a href="{{ route('professors.index') }}" class="px-4 py-2 bg-gray-500 text-white text-sm font-semibold rounded-md hover:bg-gray-600 focus:ring-2 focus:ring-gray-500">
+                    <a href="{{ route('teachers.index') }}" class="px-4 py-2 bg-gray-500 text-white text-sm font-semibold rounded-md hover:bg-gray-600 focus:ring-2 focus:ring-gray-500">
                         Cancel
                     </a>
                 </div>

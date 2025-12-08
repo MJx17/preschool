@@ -13,14 +13,17 @@ class Quiz extends Model
         'title',
         'description',
         'lesson_id',
+      
         'time_limit',
-        'status',   // ✅ added status
+        'status',
+        'type',
     ];
 
     public function lesson()
     {
         return $this->belongsTo(Lesson::class);
     }
+
 
     public function questions()
     {

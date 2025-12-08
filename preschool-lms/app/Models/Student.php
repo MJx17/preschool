@@ -70,15 +70,7 @@ class Student extends Model
         return $this->hasMany(Grade::class, 'student_id');
     }
 
-    /**
-     * Relationship with Subjects (enrollment data moved to subject_student table).
-     */
-    public function subjects()
-    {
-        return $this->belongsToMany(Subject::class, 'student_subject')
-            ->withPivot('status', 'grade')  // Including enrollment status and remarks
-            ->withTimestamps();
-    }
+  
 
     public function teacher()
     {

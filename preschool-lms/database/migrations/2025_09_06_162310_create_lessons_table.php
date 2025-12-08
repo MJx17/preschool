@@ -6,20 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations. */
-    //
-    // public function up()
-    // {
-    //     Schema::create('lessons', function (Blueprint $table) {
-    //         $table->id();
-    //         $table->string('title'); // Lesson title
-    //         $table->text('description')->nullable(); // Details about the lesson
-    //         $table->string('file_path')->nullable(); // Store file path (pdf, docx, etc.)
-    //         $table->string('video_url')->nullable(); // Optional video link (YouTube, Vimeo)
-    //         $table->timestamps();
-    //     });
-    // }
+  
 
     public function up()
     {
@@ -31,10 +18,14 @@ return new class extends Migration
             $table->string('video_url')->nullable(); // Video URL (YouTube, Vimeo, Drive, etc.)
             $table->string('document_url')->nullable(); // Document URL (PDF, Google Docs, etc.)
             $table->timestamps();
+            $table->enum('quarter', ['1', '2', '3', '4'])->nullable()->after('subject_offerings_id');
+            $table->foreignId('subject_offerings_id')
+                ->constrained()
+                ->onDelete('cascade');
         });
     }
 
-    
+
 
     /**
      * Reverse the migrations.

@@ -41,12 +41,15 @@
         <a href="{{ route('users.index') }}" class="block px-4 py-2 hover:bg-gray-200">Users</a>
         <a href="{{ route('subjects.index') }}" class="block px-4 py-2 hover:bg-gray-200">Subjects</a>
         <a href="{{ route('enrollments.index') }}" class="block px-4 py-2 hover:bg-gray-200">Enrollment</a>
+        <a href="{{ route('teachers.index') }}" class="block px-4 py-2 hover:bg-gray-200">Teachers</a>
         <a href="{{ route('student.indexAdmin') }}" class="block px-4 py-2 hover:bg-gray-200">Student List</a>
         <a href="{{ route('departments.index') }}" class="block px-4 py-2 hover:bg-gray-200">Departments</a>
-        <a href="{{ route('lessons.index') }}" class="block px-4 py-2 hover:bg-gray-200">Lessons</a>
-        <a href="{{ route('homeworks.index') }}" class="block px-4 py-2 hover:bg-gray-200">Homeworks</a>
+        <a href="{{ route('lessons.admin.index') }}" class="block px-4 py-2 hover:bg-gray-200">Lessons</a>
+        <a href="{{ route('homeworks.admin.index') }}" class="block px-4 py-2 hover:bg-gray-200">Homeworks</a>
         <a href="{{ route('quizzes.index') }}" class="block px-4 py-2 hover:bg-gray-200">Quizzes</a>
         <a href="{{ route('semesters.index') }}" class="block px-4 py-2 hover:bg-gray-200">Semesters</a>
+        <a href="{{ route('sections.index') }}" class="block px-4 py-2 hover:bg-gray-200">Sections</a>
+        <a href="{{ route('grade-levels.index') }}" class="block px-4 py-2 hover:bg-gray-200">Grade Levels</a>
         <a href="{{ route('subject_assignment.index') }}" class="block px-4 py-2 hover:bg-gray-200">Subject Schedule</a>
         @endif
 
@@ -55,7 +58,7 @@
         <!-- 🧑‍🏫 Teacher links -->
         @if(auth()->user()?->hasRole('teacher'))
 
-        <a href="{{ route('teachers.subjects', auth()->user()->teacher->id) }}"
+        <a href="{{ route('teachers.show', auth()->user()->teacher->id) }}"
             class="block px-4 py-2 hover:bg-gray-200">📚 Subjects & Attendance
         </a>
         <a href="{{ route('attendance.teacher.index') }}" class="block px-4 py-2 hover:bg-gray-200">

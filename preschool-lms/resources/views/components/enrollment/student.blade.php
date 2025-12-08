@@ -1,92 +1,124 @@
-<!-- Student & Section Selection -->
 <div x-data="studentSection()" x-init="init()" class="space-y-4">
-    <h3 class="text-lg font-semibold text-blue-800 dark:text-white mb-4">Student & Section</h3>
+
+    <!-- Active Semester -->
+    <div class="bg-white">
+        <input type="text" value="{{ $activeSemester->dropdown_label ?? 'N/A' }}" disabled
+            class="w-full p-3 border rounded bg-white-100 cursor-not-allowed">
+    </div>
 
     <!-- Student -->
-    <select name="student_id" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-        <option value="" disabled>Select Student</option>
-        @foreach($students as $student)
+    <!-- Student -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700">Student</label>
+        <select name="student_id" required
+            class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-500 @error('student_id') border-red-500 @enderror">
+            <option value="" disabled selected>Select Student</option>
+            @foreach($students as $student)
             @if($availableStudentIds->contains($student->id))
-                <option value="{{ $student->id }}" {{ old('student_id') == $student->id ? 'selected' : '' }}>
-                    {{ $student->fullname }}
-                </option>
-            @endif
-        @endforeach
-    </select>
-
-    <!-- Semester -->
-    <select x-model="semester_id" name="semester_id" required @change="loadSections()"
-        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-        <option value="" disabled>Select Semester</option>
-        @foreach($semesters as $semester)
-            <option value="{{ $semester->id }}" {{ old('semester_id') == $semester->id ? 'selected' : '' }}>
-                {{ $semester->semester }} Semester
+            <option value="{{ $student->id }}" {{ old('student_id') == $student->id ? 'selected' : '' }}>
+                {{ $student->fullname }}
             </option>
-        @endforeach
-    </select>
+            @endif
+            @endforeach
+        </select>
+        @error('student_id')
+        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+        @enderror
+    </div>
 
     <!-- Grade Level -->
-    <select x-model="grade_level_id" name="grade_level_id" required @change="loadSections()"
-        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-        <option value="" disabled>Select Grade Level</option>
-        @foreach($gradeLevels as $level)
+    <div>
+        <label class="block text-sm font-medium text-gray-700">Grade Level</label>
+        <select x-model="grade_level_id" name="grade_level_id" required @change="loadSections()"
+            class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-500 @error('grade_level_id') border-red-500 @enderror">
+            <option value="" disabled>Select Grade Level</option>
+            @foreach($gradeLevels as $level)
             <option value="{{ $level->id }}" {{ old('grade_level_id') == $level->id ? 'selected' : '' }}>
                 {{ $level->name }}
             </option>
-        @endforeach
-    </select>
+            @endforeach
+        </select>
+        @error('grade_level_id')
+        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+        @enderror
+    </div>
 
     <!-- Section -->
-    <template x-if="sections.length">
-        <select name="section_id" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-            <option value="" disabled>Select Section</option>
-            <template x-for="section in sections" :key="section.id">
-                <option :value="section.id" 
-                        x-text="`${section.name} (${section.enrollments_count}/${section.max_students})`"
-                        :selected="section.id == @json(old('section_id') ?? '')"></option>
-            </template>
-        </select>
-    </template>
-
-    <template x-if="!sections.length && grade_level_id && semester_id">
-        <p class="text-red-500 text-sm">No available sections for selected grade level and semester.</p>
-    </template>
-
-    <!-- Category -->
-    <select name="category" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500">
-        <option value="new" {{ old('category') == 'new' ? 'selected' : '' }}>New</option>
-        <option value="old" {{ old('category') == 'old' ? 'selected' : '' }}>Old</option>
-        <option value="shifter" {{ old('category') == 'shifter' ? 'selected' : '' }}>Shifter</option>
+    <select name="section_id" required x-model="selectedSection"
+        class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-500 @error('section_id') border-red-500 @enderror">
+        <option value="" disabled>Select Section</option>
+        <template x-for="section in sections" :key="section.id">
+            <option :value="section.id"
+                x-text="`${section.name} (${section.enrollments_count}/${section.max_students})`">
+            </option>
+        </template>
     </select>
+    @error('section_id')
+    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+    @enderror
+
+    <!-- Enrollment Category -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700">Enrollment Category</label>
+        <select name="category" required
+            class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-500 @error('category') border-red-500 @enderror">
+            <option value="new" {{ old('category') == 'new' ? 'selected' : '' }}>New</option>
+            <option value="old" {{ old('category') == 'old' ? 'selected' : '' }}>Old</option>
+            <option value="shifter" {{ old('category') == 'shifter' ? 'selected' : '' }}>Shifter</option>
+        </select>
+        @error('category')
+        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+        @enderror
+    </div>
+
 </div>
 
 <script>
-function studentSection() {
-    return {
-        grade_level_id: @json(old('grade_level_id') ?? ''),
-        semester_id: @json(old('semester_id') ?? ''),
-        sections: [],
-        async loadSections() {
-            if (!this.grade_level_id || !this.semester_id) {
-                this.sections = [];
-                return;
-            }
+    function studentSection() {
+        return {
+            grade_level_id: @json(old('grade_level_id') ?? $selectedGradeLevelId ?? ''),
+            sections: @json($sections ?? []),
+            selectedSection: @json(old('section_id') ?? ''),
 
-            try {
-                const response = await fetch(`/api/sections?grade_level_id=${this.grade_level_id}&semester_id=${this.semester_id}`);
-                const data = await response.json();
-                this.sections = data; // [{id, name, enrollments_count, max_students}]
-            } catch (error) {
-                console.error('Error loading sections:', error);
-                this.sections = [];
-            }
-        },
-        init() {
-            // Load sections if old values exist (after validation error)
-            if (this.grade_level_id && this.semester_id) {
-                this.loadSections();
+            async init() {
+                // If grade level already selected, load sections
+                if (this.grade_level_id) {
+                    await this.loadSections();
+                }
+            },
+
+            async loadSections() {
+                if (!this.grade_level_id) {
+                    this.sections = [];
+                    this.selectedSection = '';
+                    window.dispatchEvent(new CustomEvent('grade-changed', {
+                        detail: null
+                    }));
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/sections/grade/${this.grade_level_id}`);
+                    const data = await response.json();
+                    this.sections = data;
+
+                    // Keep old selection if it exists in the new list
+                    if (!this.sections.find(s => s.id == this.selectedSection)) {
+                        this.selectedSection = '';
+                    }
+
+                    window.dispatchEvent(new CustomEvent('grade-changed', {
+                        detail: this.grade_level_id
+                    }));
+                } catch (error) {
+                    console.error('Error loading sections:', error);
+                    this.sections = [];
+                    this.selectedSection = '';
+                    window.dispatchEvent(new CustomEvent('grade-changed', {
+                        detail: null
+                    }));
+                }
             }
         }
     }
-}
 </script>

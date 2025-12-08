@@ -16,6 +16,7 @@ use App\Models\EnrollmentSubjectOffering;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -185,48 +186,55 @@ class EnrollmentController extends Controller
 
     public function create(Request $request)
     {
-        $semesters = Semester::orderBy('start_date', 'desc')->get();
+        // Active semester
+        $activeSemester = Semester::where('status', 'active')->first();
+
+        if (!$activeSemester) {
+            return back()->with('error', 'No active semester found.');
+        }
+
         $gradeLevels = GradeLevel::orderBy('name')->get();
         $students = Student::orderBy('surname')->get();
 
-        $selectedSemesterId = $request->get('semester_id');
-        $selectedGradeLevelId = $request->get('grade_level_id');
+        $selectedGradeLevelId = $request->get('grade_level_id') ?? old('grade_level_id');
 
-        // Available students (not already enrolled in this semester)
-        $availableStudentIds = $students->pluck('id');
-        if ($selectedSemesterId) {
-            $enrolledStudentIds = Enrollment::where('semester_id', $selectedSemesterId)->pluck('student_id');
-            $availableStudentIds = $availableStudentIds->diff($enrolledStudentIds);
-        }
+        // Students not yet enrolled in this semester
+        $enrolledStudents = Enrollment::where('semester_id', $activeSemester->id)->pluck('student_id');
+        $availableStudentIds = $students->pluck('id')->diff($enrolledStudents);
 
-        // Load sections only if grade level and semester are selected
+        // Sections for selected grade level & active semester
         $sections = collect();
-        if ($selectedGradeLevelId && $selectedSemesterId) {
-            $sections = Section::withCount(['enrollments' => function ($q) use ($selectedSemesterId) {
-                $q->where('semester_id', $selectedSemesterId);
-            }])
-                ->where('grade_level_id', $selectedGradeLevelId)
-                ->get()
-                ->filter(fn($section) => $section->enrollments_count < $section->max_students);
+        if ($selectedGradeLevelId) {
+            $sectionsQuery = Section::withCount([
+                'enrollments as enrollments_count' => function ($q) use ($activeSemester) {
+                    $q->where('semester_id', $activeSemester->id);
+                }
+            ])->where('grade_level_id', $selectedGradeLevelId);
+
+            // Get all sections first, then filter by capacity
+            $sections = $sectionsQuery->get()->filter(function ($section) {
+                return $section->enrollments_count < $section->max_students;
+            });
         }
 
-        // Load subjects
+        // Subjects for selected grade level & active semester
         $subjects = collect();
-        if ($selectedSemesterId && $selectedGradeLevelId) {
+        if ($selectedGradeLevelId) {
             $subjects = SubjectOffering::with(['subject', 'teacher.user'])
-                ->where('semester_id', $selectedSemesterId)
-                ->whereHas('subject', fn($q) => $q->where('grade_level_id', $selectedGradeLevelId))
+                ->where('semester_id', $activeSemester->id)
+                ->whereHas('subject', function ($q) use ($selectedGradeLevelId) {
+                    $q->where('grade_level_id', $selectedGradeLevelId);
+                })
                 ->get();
         }
 
         return view('enrollments.create', compact(
-            'semesters',
+            'activeSemester',
             'gradeLevels',
             'students',
             'availableStudentIds',
             'sections',
             'subjects',
-            'selectedSemesterId',
             'selectedGradeLevelId'
         ));
     }
@@ -254,7 +262,21 @@ class EnrollmentController extends Controller
             'other_fee'         => 'nullable|numeric|min:0',
             'discount'          => 'nullable|numeric|min:0',
             'initial_payment'   => 'nullable|numeric|min:0',
+
+            //    Financial info
+            'financier' => 'nullable|string',
+            'company_name' => 'nullable|string',
+            'company_address' => 'nullable|string',
+            'contact_number' => 'nullable|string',
+            'income' => 'nullable|numeric|min:0',
+            'scholarship' => 'nullable|numeric|min:0',
+            'relative_names' => 'nullable|array',
+            'relationships' => 'nullable|array',
+            'position_courses' => 'nullable|array',
+            'relative_contact_numbers' => 'nullable|array',
         ]);
+
+        Log::info('Enrollment validated data:', $validated);
 
         DB::transaction(function () use ($validated) {
 
@@ -277,6 +299,8 @@ class EnrollmentController extends Controller
                 'section_id'     => $section->id,
                 'category'       => $validated['category'],
             ]);
+
+            Log::info("Enrollment created", ['enrollment_id' => $enrollment->id]);
 
             // 3️⃣ Attach Subject Offerings
             $subjectOfferings = SubjectOffering::where('semester_id', $validated['semester_id'])
@@ -332,8 +356,10 @@ class EnrollmentController extends Controller
 
             // 5️⃣ Update student status
             $enrollment->student->update(['status' => 'enrolled']);
+            Log::info("Enrollment transaction completed", ['enrollment_id' => $enrollment->id]);
         });
-
+ 
+    
         return redirect()->route('enrollments.index')
             ->with('success', 'Enrollment created successfully!');
     }
@@ -359,27 +385,49 @@ class EnrollmentController extends Controller
 
     public function getSubjects(Request $request)
     {
-        // Start query for subjects
-        $query = Subject::query()->with('gradeLevel');
+        $gradeLevelId = $request->input('grade_level_id');
+        $semesterId   = $request->input('semester_id');
 
-        // If a grade_level_id filter is passed
-        if ($request->filled('grade_level_id')) {
-            $query->where('grade_level_id', $request->grade_level_id);
+        // Ensure we have a semester ID, fallback to active semester
+        if (!$semesterId) {
+            $activeSemester = Semester::where('status', 'active')->first();
+            $semesterId = $activeSemester?->id;
         }
 
-        // If a semester_id filter is passed, only include subjects offered in that semester
-        if ($request->filled('semester_id')) {
-            $query->whereHas('subjectOfferings', function ($q) use ($request) {
-                $q->where('semester_id', $request->semester_id);
-            });
+        // Query subjects
+        $subjects = Subject::with(['gradeLevel', 'subjectOfferings' => function ($q) use ($semesterId) {
+            $q->where('semester_id', $semesterId);
+        }]);
+
+        // Filter by grade level if provided
+        if ($gradeLevelId) {
+            $subjects->where('grade_level_id', $gradeLevelId);
         }
 
-        // Get subjects and group by grade level name
-        $subjects = $query->get()->groupBy(function ($subject) {
-            return $subject->gradeLevel->name ?? 'Unknown';
-        });
+        $subjects = $subjects->get();
 
-        return response()->json($subjects);
+        // Group by grade level name (optional)
+        $subjectsByGrade = $subjects->groupBy(fn($subject) => $subject->gradeLevel->name ?? 'Unknown');
+
+        // Transform to a simple structure for frontend
+        $result = [];
+        foreach ($subjectsByGrade as $gradeName => $subjects) {
+            $result[$gradeName] = $subjects->map(fn($s) => [
+                'id'   => $s->id,
+                'name' => $s->name,
+                'code' => $s->code,
+                'offerings' => $s->subjectOfferings->map(fn($so) => [
+                    'id' => $so->id,
+                    'teacher_id' => $so->teacher_id,
+                    'room' => $so->room,
+                    'days' => $so->days,
+                    'start_time' => $so->start_time,
+                    'end_time' => $so->end_time,
+                ]),
+            ]);
+        }
+
+        return response()->json($result);
     }
 
 

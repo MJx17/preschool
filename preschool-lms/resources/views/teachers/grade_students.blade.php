@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Grade Students for ' . $subject->name) }}
+            {{ __('Grade Students for ' . $subjectOffering->subject->name) }}
         </h2>
     </x-slot>
 
@@ -9,14 +9,13 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <h3 class="text-lg font-medium mb-4">
-                    {{ $subject->name }}
-                    </h3>
 
-                    @if($subject->students->isEmpty())
-                        <p>No students are enrolled in this subject.</p>
+                    <h3 class="text-lg font-medium mb-4">{{ $subjectOffering->subject->name }}</h3>
+
+                    @if($subjectOffering->enrollmentSubjectOfferings->isEmpty())
+                        <p>No students are enrolled in this subject offering.</p>
                     @else
-                        <form action="{{ route('professor.updateGrades', $subject->id) }}" method="POST">
+                        <form action="{{ route('teacher.updateGrades', $subjectOffering->id) }}" method="POST">
                             @csrf
                             @method('PUT')
 
@@ -24,37 +23,38 @@
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="bg-gray-200">
                                         <tr>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Student ID
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Student Name
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Current Grade
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Update Grade
-                                            </th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Student ID</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Student Name</th>
+                                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">1st Grading</th>
+                                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">2nd Grading</th>
+                                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">3rd Grading</th>
+                                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">4th Grading</th>
+                                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Final Grade</th>
+                                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Remarks</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 ">
-                                        @foreach($subject->students as $student)
-                                            <tr class="border-y hover:bg-gray-100">
-                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                                    {{ $student->id }}
-                                                </td>
-                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                                    {{ $student->fullname }}
-                                                </td>
-                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                                    {{ $student->pivot->grade ?? 'N/A' }}
-                                                </td>
-                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                                    <input type="number" name="grades[{{ $student->id }}]" 
-                                                           value="{{ old('grades.' . $student->id, $student->pivot->grade) }}" 
-                                                           class="border p-2 rounded w-20 text-center"
-                                                           min="0" max="100">
+
+                                    <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200">
+                                        @foreach($subjectOffering->enrollmentSubjectOfferings as $record)
+                                            <tr class="hover:bg-gray-100">
+                                                <td class="px-4 py-2 text-sm">{{ $record->enrollment->student->id }}</td>
+                                                <td class="px-4 py-2 text-sm">{{ $record->enrollment->student->fullname }}</td>
+
+                                                @foreach(['first_grading','second_grading','third_grading','fourth_grading','final_grade'] as $field)
+                                                    <td class="px-2 py-1">
+                                                        <input type="number"
+                                                               name="grades[{{ $record->id }}][{{ $field }}]"
+                                                               value="{{ old('grades.' . $record->id . '.' . $field, optional($record->grade)->$field) }}"
+                                                               class="border p-1 w-16 text-center"
+                                                               min="0" max="100">
+                                                    </td>
+                                                @endforeach
+
+                                                <td class="px-2 py-1">
+                                                    <input type="text"
+                                                           name="grades[{{ $record->id }}][remarks]"
+                                                           value="{{ old('grades.' . $record->id . '.remarks', optional($record->grade)->remarks) }}"
+                                                           class="border p-1 w-full text-sm">
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -63,39 +63,15 @@
                             </div>
 
                             <div class="mt-4 flex justify-end gap-2">
-                                <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg">
-                                    Save 
-                                </button>
-                                @php
-                                // Default professor ID to null
-                                $professorId = null;
-
-                                // If the user is a professor, get their own professor ID
-                                if (auth()->user()->hasRole('professor') && auth()->user()->professor) {
-                                    $professorId = auth()->user()->professor->id;
-                                } 
-                                // If the user is an admin, no professor ID is needed
-                            @endphp
-
-                            @if(auth()->user()->hasRole('professor') && $professorId)
-                                <a href="{{ route('professors.show', $professorId) }}" 
-                                class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700">
-                                    Cancel
-                                </a>
-                            @endif
-
-                            @if(auth()->user()->hasRole('admin'))
+                                <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg">Save Grades</button>
                                 <a href="javascript:history.back()"
-                                class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700">
-                                    Cancel
+                                   class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
+                                   Cancel
                                 </a>
-                            @endif
-
-
-
                             </div>
                         </form>
                     @endif
+
                 </div>
             </div>
         </div>

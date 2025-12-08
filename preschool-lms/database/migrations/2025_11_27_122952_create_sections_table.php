@@ -12,13 +12,16 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('grade_level_id');
             $table->string('name', 50);
-            $table->integer('max_students')->default(40); // NEW FIELD
+            $table->integer('max_students')->default(40);
             $table->timestamps();
 
             $table->foreign('grade_level_id')
                 ->references('id')
                 ->on('grade_levels')
                 ->onDelete('cascade');
+
+            // Make section name unique per grade level
+            $table->unique(['grade_level_id', 'name']);
         });
     }
 

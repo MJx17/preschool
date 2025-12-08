@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Subject;
+use App\Models\Semester;
+use App\Models\SubjectOffering;
 use App\Models\GradeLevel;
 use Illuminate\Http\Request;
 
@@ -81,4 +83,19 @@ class SubjectController extends Controller
 
         return view('subjects.show', compact('subject'));
     }
+
+        //Enrollment Subject Offerring 
+        public function byGradeLevel(Request $request)
+    {
+        $gradeLevelId = $request->query('grade_level_id');
+        $activeSemester = Semester::where('status', 'active')->first();
+
+        $subjects = SubjectOffering::with('subject')
+            ->where('semester_id', $activeSemester->id)
+            ->whereHas('subject', fn($q) => $q->where('grade_level_id', $gradeLevelId))
+            ->get();
+
+        return response()->json($subjects);
+    }
+
 }
