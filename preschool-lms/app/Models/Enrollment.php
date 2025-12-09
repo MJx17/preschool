@@ -45,9 +45,9 @@ class Enrollment extends Model
     {
         return $this->belongsToMany(
             SubjectOffering::class,
-            'enrollment_subject_offering',   
-            'enrollment_id',                 
-            'subject_offering_id'            
+            'enrollment_subject_offering',
+            'enrollment_id',
+            'subject_offering_id'
         );
     }
 
@@ -57,6 +57,16 @@ class Enrollment extends Model
     {
         return $this->hasOne(Fee::class, 'enrollment_id');
     }
+
+    public function section()
+    {
+        return $this->belongsTo(Section::class);
+    }
+    public function gradeLevel()
+    {
+        return $this->belongsTo(GradeLevel::class);
+    }
+
 
     public function payments()
     {

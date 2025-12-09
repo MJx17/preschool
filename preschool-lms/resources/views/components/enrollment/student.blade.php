@@ -2,8 +2,13 @@
 
     <!-- Active Semester -->
     <div class="bg-white">
-        <input type="text" value="{{ $activeSemester->dropdown_label ?? 'N/A' }}" disabled
+        <input type="text"
+            value="{{ $activeSemester->dropdown_label ?? 'N/A' }}"
+            disabled
             class="w-full p-3 border rounded bg-white-100 cursor-not-allowed">
+
+        <!-- Hidden field needed for validation -->
+        <input type="hidden" name="semester_id" value="{{ $activeSemester->id }}">
     </div>
 
     <!-- Student -->
@@ -44,15 +49,17 @@
     </div>
 
     <!-- Section -->
-    <select name="section_id" required x-model="selectedSection"
-        class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-500 @error('section_id') border-red-500 @enderror">
-        <option value="" disabled>Select Section</option>
-        <template x-for="section in sections" :key="section.id">
-            <option :value="section.id"
-                x-text="`${section.name} (${section.enrollments_count}/${section.max_students})`">
-            </option>
-        </template>
-    </select>
+    <div>
+        <select name="section_id" required x-model="selectedSection" class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-500 @error('grade_level_id') border-red-500 @enderror">
+            <option value="" disabled>Select Section</option>
+            <template x-for="section in sections" :key="section.id">
+                <option :value="section.id"
+                    :selected="section.id == selectedSection"
+                    x-text="`${section.name} (${section.enrollments_count}/${section.max_students})`">
+                </option>
+            </template>
+        </select>
+    </div>
     @error('section_id')
     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
     @enderror
