@@ -12,24 +12,29 @@
     </div>
 
     <!-- Student -->
-    <!-- Student -->
     <div>
         <label class="block text-sm font-medium text-gray-700">Student</label>
         <select name="student_id" required
             class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-500 @error('student_id') border-red-500 @enderror">
-            <option value="" disabled selected>Select Student</option>
+            <option value="" disabled {{ old('student_id', $selectedStudentId ?? '') == '' ? 'selected' : '' }}>
+                Select Student
+            </option>
+
             @foreach($students as $student)
             @if($availableStudentIds->contains($student->id))
-            <option value="{{ $student->id }}" {{ old('student_id') == $student->id ? 'selected' : '' }}>
+            <option value="{{ $student->id }}"
+                {{ old('student_id', $selectedStudentId ?? '') == $student->id ? 'selected' : '' }}>
                 {{ $student->fullname }}
             </option>
             @endif
             @endforeach
         </select>
+
         @error('student_id')
         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
         @enderror
     </div>
+
 
     <!-- Grade Level -->
     <div>

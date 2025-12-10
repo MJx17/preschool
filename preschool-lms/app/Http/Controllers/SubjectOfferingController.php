@@ -8,93 +8,106 @@ use App\Models\Section;
 use App\Models\Semester;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class SubjectOfferingController extends Controller
 {
     // LIST
     public function index(Request $request)
     {
-        $query = SubjectOffering::query()->with(['subject', 'semester', 'teacher.user', 'section']);
+        $query = SubjectOffering::with(['subject.gradeLevel', 'semester', 'teacher', 'section']);
 
-        // Teacher filter
         if ($request->filled('teacher_id')) {
             $query->where('teacher_id', $request->teacher_id);
         }
 
-        // Section filter
-        if ($request->filled('section')) {
-            $query->whereHas('section', function ($q) use ($request) {
-                $q->where('name', $request->section);
-            });
+        if ($request->filled('section_id')) {
+            $query->where('section_id', $request->section_id);
         }
 
-        // Semester filter
         if ($request->filled('semester_id')) {
             $query->where('semester_id', $request->semester_id);
         }
 
-        // Get the filtered subject assignments
-        $subjectAssignments = $query->get();
+        $subjectOfferings = $query->get();
 
-        // For filter dropdowns
-        $teachers = Teacher::with('user')->get();
-        $sections = Section::all();
+        // Group by grade and then section
+        $subjectAssignments = $subjectOfferings
+            ->groupBy(fn($item) => optional($item->subject->gradeLevel)->id)
+            ->map(fn($gradeGroup) => $gradeGroup->groupBy('section_id'));
+
+        $teachers = Teacher::all();
+        $sections = Section::with('gradeLevel')->get();
         $semesters = Semester::all();
 
-        return view('subject_assignment.index', compact('subjectAssignments', 'teachers', 'sections', 'semesters'));
+        return view('subject_assignment.index', compact(
+            'subjectAssignments',
+            'teachers',
+            'sections',
+            'semesters'
+        ));
     }
+
+
+
+
+
+
 
 
 
     // CREATE FORM
+    // CREATE FORM
     public function create()
     {
-        $subjects  = Subject::all();
-        $semesters = Semester::all();
-        $teachers  = Teacher::with('user')->get();
+        $subjects = Subject::all();
+        $teachers = Teacher::with('user')->get();
+        $sections = Section::with('gradeLevel')->get();
+        $activeSemester = Semester::where('status', 'active')->first();
 
         return view('subject_assignment.create', compact(
             'subjects',
-            'semesters',
-            'teachers'
+            'teachers',
+            'sections',
+            'activeSemester'
         ));
     }
 
+    // STORE
     public function store(Request $request)
     {
         $validated = $request->validate([
             'subject_id'  => 'required|exists:subjects,id',
             'semester_id' => 'required|exists:semesters,id',
             'teacher_id'  => 'required|exists:teachers,id',
-            'block'       => 'required|string|max:10',
-            'room'        => 'required|string|max:20',
+            'section_id'  => 'required|exists:sections,id',
+            'room'        => 'nullable|string|max:50',
             'days'        => 'nullable|array',
-            'days.*'      => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+            'days.*'      => 'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
             'start_time'  => 'required|date_format:H:i',
             'end_time'    => 'required|date_format:H:i|after:start_time',
         ]);
 
-        // Check for duplicates
-        $exists = SubjectOffering::where('subject_id', $validated['subject_id'])
-            ->where('semester_id', $validated['semester_id'])
-            ->where('teacher_id', $validated['teacher_id'])
-            ->where('block', $validated['block'])
-            ->exists();
+        // Duplicate check
+        $exists = SubjectOffering::where([
+            'subject_id' => $validated['subject_id'],
+            'semester_id' => $validated['semester_id'],
+            'teacher_id' => $validated['teacher_id'],
+            'section_id' => $validated['section_id'],
+        ])->exists();
 
         if ($exists) {
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['duplicate' => 'This subject assignment already exists for the selected semester, teacher, and block.']);
+                ->withErrors(['duplicate' => 'This subject assignment already exists for the selected semester, teacher, section,']);
         }
 
         SubjectOffering::create([
             'subject_id'  => $validated['subject_id'],
             'semester_id' => $validated['semester_id'],
             'teacher_id'  => $validated['teacher_id'],
-            'block'       => $validated['block'],
-            'room'        => $validated['room'],
-            'days'        => json_encode($validated['days'] ?? []),
+            'section_id'  => $validated['section_id'],
+            'room'        => $validated['room'] ?? null,
+            'days'        => isset($validated['days']) ? json_encode($validated['days']) : null,
             'start_time'  => $validated['start_time'],
             'end_time'    => $validated['end_time'],
         ]);
@@ -103,9 +116,6 @@ class SubjectOfferingController extends Controller
             ->with('success', 'Subject assignment created!');
     }
 
-
-
-    // EDIT FORM
     // EDIT FORM
     public function edit($id)
     {
@@ -113,6 +123,7 @@ class SubjectOfferingController extends Controller
         $subjects  = Subject::all();
         $semesters = Semester::all();
         $teachers  = Teacher::with('user')->get();
+        $sections  = Section::with('gradeLevel')->get();
 
         $selectedDays = is_string($subject_assignment->days)
             ? json_decode($subject_assignment->days, true)
@@ -123,33 +134,25 @@ class SubjectOfferingController extends Controller
             'subjects',
             'semesters',
             'teachers',
+            'sections',
             'selectedDays'
         ));
     }
+
 
     // UPDATE
     public function update(Request $request, $id)
     {
         $subject_assignment = SubjectOffering::findOrFail($id);
-
-        $validated = $request->validate([
-            'subject_id'  => 'required|exists:subjects,id',
-            'semester_id' => 'required|exists:semesters,id',
-            'teacher_id'  => 'required|exists:teachers,id',
-            'block'       => 'required|string|max:10',
-            'room'        => 'required|string|max:20',
-            'days'        => 'nullable|array',
-            'days.*'      => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-            'start_time'  => 'required|date_format:H:i',
-            'end_time'    => 'required|date_format:H:i|after:start_time',
-        ]);
+        $validated = $this->validateSubjectOffering($request);
 
         // Prevent duplicates
-        $exists = SubjectOffering::where('subject_id', $validated['subject_id'])
-            ->where('semester_id', $validated['semester_id'])
-            ->where('teacher_id', $validated['teacher_id'])
-            ->where('block', $validated['block'])
-            ->where('id', '!=', $subject_assignment->id)
+        $exists = SubjectOffering::where([
+            'subject_id' => $validated['subject_id'],
+            'semester_id' => $validated['semester_id'],
+            'teacher_id' => $validated['teacher_id'],
+            'section_id' => $validated['section_id'],
+        ])->where('id', '!=', $subject_assignment->id)
             ->exists();
 
         if ($exists) {
@@ -160,7 +163,7 @@ class SubjectOfferingController extends Controller
             'subject_id'  => $validated['subject_id'],
             'semester_id' => $validated['semester_id'],
             'teacher_id'  => $validated['teacher_id'],
-            'block'       => $validated['block'],
+            'section_id'  => $validated['section_id'],
             'room'        => $validated['room'],
             'days'        => json_encode($validated['days'] ?? []),
             'start_time'  => $validated['start_time'],
@@ -171,8 +174,7 @@ class SubjectOfferingController extends Controller
             ->with('success', 'Subject assignment updated!');
     }
 
-
-    // DELETE MANUAL
+    // DELETE
     public function destroy($id)
     {
         $subject_assignment = SubjectOffering::findOrFail($id);
@@ -182,7 +184,6 @@ class SubjectOfferingController extends Controller
             ->with('success', 'Subject assignment deleted!');
     }
 
-
     // VALIDATION
     private function validateSubjectOffering(Request $request)
     {
@@ -190,7 +191,7 @@ class SubjectOfferingController extends Controller
             'subject_id'  => 'required|exists:subjects,id',
             'semester_id' => 'required|exists:semesters,id',
             'teacher_id'  => 'required|exists:teachers,id',
-            'block'       => 'required|string|max:10',
+            'section_id'  => 'required|exists:sections,id', // section required now
             'room'        => 'required|string|max:20',
             'days'        => 'nullable|array',
             'days.*'      => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',

@@ -42,148 +42,6 @@ class EnrollmentController extends Controller
         return view('enrollments.index', compact('enrollments', 'semesters', 'semesterId'));
     }
 
-    // public function create(Request $request)
-    // {
-    //     $semesterOptions = Semester::orderBy('start_date', 'desc')->get();
-    //     $gradeLevels = \App\Models\GradeLevel::orderBy('name')->get();
-    //     $students = Student::all();
-
-    //     $selectedSemesterId = $request->get('semester_id');
-    //     $selectedGradeLevelId = $request->get('grade_level_id');
-
-    //     // Available students (not yet enrolled in selected semester)
-    //     $availableStudentIds = $students->pluck('id');
-    //     if ($selectedSemesterId) {
-    //         $enrolledStudentIds = Enrollment::where('semester_id', $selectedSemesterId)
-    //             ->pluck('student_id');
-
-    //         $availableStudentIds = $students->pluck('id')->diff($enrolledStudentIds);
-    //     }
-
-    //     // Fetch subjects for selected grade level and semester
-    //     $subjects = collect();
-    //     if ($selectedSemesterId && $selectedGradeLevelId) {
-    //         $subjects = \App\Models\SubjectOffering::where('semester_id', $selectedSemesterId)
-    //             ->whereHas('subject', fn($q) => $q->where('grade_level_id', $selectedGradeLevelId))
-    //             ->with('subject')
-    //             ->get();
-    //     }
-
-    //     return view('enrollments.create', compact(
-    //         'students',
-    //         'gradeLevels',
-    //         'availableStudentIds',
-    //         'subjects'
-    //     ))
-    //         ->with('semesters', $semesterOptions)
-    //         ->with('selectedSemesterId', $selectedSemesterId)
-    //         ->with('selectedGradeLevelId', $selectedGradeLevelId);
-    // }
-
-
-    // public function store(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'student_id' => [
-    //             'required',
-    //             'exists:students,id',
-    //             Rule::unique('enrollments')->where(fn($q) => $q->where('semester_id', $request->semester_id)),
-    //         ],
-    //         'semester_id' => 'required|exists:semesters,id',
-    //         'grade_level_id' => 'required|exists:grade_levels,id',
-    //         'category' => 'required|string|in:new,old,shifter',
-    //         // Fees
-    //         'tuition_fee' => 'required|numeric|min:0',
-    //         'lab_fee' => 'nullable|numeric|min:0',
-    //         'miscellaneous_fee' => 'nullable|numeric|min:0',
-    //         'other_fee' => 'nullable|numeric|min:0',
-    //         'discount' => 'nullable|numeric|min:0',
-    //         'initial_payment' => 'nullable|numeric|min:0',
-    //         // Payment status
-    //         'prelims_paid' => 'nullable|boolean',
-    //         'midterms_paid' => 'nullable|boolean',
-    //         'pre_final_paid' => 'nullable|boolean',
-    //         'final_paid' => 'nullable|boolean',
-    //         // Financial info
-    //         'financier' => 'nullable|string',
-    //         'company_name' => 'nullable|string',
-    //         'company_address' => 'nullable|string',
-    //         'contact_number' => 'nullable|string',
-    //         'income' => 'nullable|numeric|min:0',
-    //         'scholarship' => 'nullable|numeric|min:0',
-    //         'relative_names' => 'nullable|array',
-    //         'relationships' => 'nullable|array',
-    //         'position_courses' => 'nullable|array',
-    //         'relative_contact_numbers' => 'nullable|array',
-    //     ]);
-
-    //     DB::transaction(function () use ($validated) {
-
-    //         // 1️⃣ Create Enrollment
-    //         $enrollment = Enrollment::create([
-    //             'student_id' => $validated['student_id'],
-    //             'semester_id' => $validated['semester_id'],
-    //             'category' => $validated['category'],
-    //             'grade_level_id' => $validated['grade_level_id'],
-    //         ]);
-
-    //         // 2️⃣ Automatically attach subjects (based on grade level + semester)
-    //         $subjectOfferings = \App\Models\SubjectOffering::where('semester_id', $validated['semester_id'])
-    //             ->whereHas('subject', fn($q) => $q->where('grade_level_id', $validated['grade_level_id']))
-    //             ->pluck('id');
-
-    //         foreach ($subjectOfferings as $offeringId) {
-    //             \App\Models\EnrollmentSubjectOffering::updateOrCreate(
-    //                 ['enrollment_id' => $enrollment->id, 'subject_offering_id' => $offeringId],
-    //                 ['status' => 'enrolled', 'grade' => null]
-    //             );
-    //         }
-
-    //         // 3️⃣ Create Fees
-    //         $totalFees = ($validated['tuition_fee'] ?? 0)
-    //             + ($validated['lab_fee'] ?? 0)
-    //             + ($validated['miscellaneous_fee'] ?? 0)
-    //             + ($validated['other_fee'] ?? 0);
-
-    //         $discount = $validated['discount'] ?? 0;
-    //         $initialPayment = $validated['initial_payment'] ?? 0;
-    //         $remainingBalance = max($totalFees - $discount - $initialPayment, 0);
-    //         $installment = $remainingBalance / 4;
-
-    //         $fee = Fee::create([
-    //             'enrollment_id' => $enrollment->id,
-    //             'tuition_fee' => $validated['tuition_fee'],
-    //             'lab_fee' => $validated['lab_fee'] ?? 0,
-    //             'miscellaneous_fee' => $validated['miscellaneous_fee'] ?? 0,
-    //             'other_fee' => $validated['other_fee'] ?? 0,
-    //             'discount' => $discount,
-    //             'initial_payment' => $initialPayment,
-    //         ]);
-
-    //         Payment::create([
-    //             'fee_id' => $fee->id,
-    //             'prelims_payment' => $installment,
-    //             'prelims_paid' => $validated['prelims_paid'] ?? false,
-    //             'midterms_payment' => $installment,
-    //             'midterms_paid' => $validated['midterms_paid'] ?? false,
-    //             'pre_final_payment' => $installment,
-    //             'pre_final_paid' => $validated['pre_final_paid'] ?? false,
-    //             'final_payment' => $installment,
-    //             'final_paid' => $validated['final_paid'] ?? false,
-    //             'status' => 'Pending',
-    //         ]);
-
-    //         // 4️⃣ Update student status
-    //         $enrollment->student->update(['status' => 'enrolled']);
-    //     });
-
-    //     return redirect()->route('enrollments.index')->with('success', 'Enrollment created successfully!');
-    // }
-
-
-
-
-
     public function create(Request $request)
     {
         // Active semester
@@ -211,7 +69,6 @@ class EnrollmentController extends Controller
                 }
             ])->where('grade_level_id', $selectedGradeLevelId);
 
-            // Get all sections first, then filter by capacity
             $sections = $sectionsQuery->get()->filter(function ($section) {
                 return $section->enrollments_count < $section->max_students;
             });
@@ -228,6 +85,11 @@ class EnrollmentController extends Controller
                 ->get();
         }
 
+        // Variables required by the Blade (for consistency with edit)
+        $fee = null;
+        $financialData = null;
+        $selectedSubjects = [];
+
         return view('enrollments.create', compact(
             'activeSemester',
             'gradeLevels',
@@ -235,7 +97,10 @@ class EnrollmentController extends Controller
             'availableStudentIds',
             'sections',
             'subjects',
-            'selectedGradeLevelId'
+            'selectedGradeLevelId',
+            'fee',
+            'financialData',
+            'selectedSubjects'
         ));
     }
 
@@ -508,39 +373,54 @@ class EnrollmentController extends Controller
 
     public function edit($id)
     {
-        $enrollment = Enrollment::with(['student', 'section', 'gradeLevel', 'semester'])->findOrFail($id);
+        $enrollment = Enrollment::with([
+            'student',
+            'section',
+            'gradeLevel',
+            'fees',
+            'financialInformation',
+            'enrollmentSubjectOfferings'
+        ])->findOrFail($id);
 
-        // All students
         $students = Student::orderBy('surname')->get();
-
-        // Active semester is the one of the enrollment (not editable)
-        $activeSemester = $enrollment->semester;
-
-        // Grade levels
         $gradeLevels = GradeLevel::orderBy('name')->get();
 
-        $fee = $enrollment->fees;
+        $activeSemester = Semester::where('status', 'active')->first();
 
-        // Sections for this grade level & semester
-        $sectionsQuery = Section::withCount([
-            'enrollments as enrollments_count' => function ($q) use ($activeSemester) {
-                $q->where('semester_id', $activeSemester->id);
+        // Students not yet enrolled in this semester (exclude this enrollment)
+        $enrolledStudents = Enrollment::where('semester_id', $enrollment->semester_id)
+            ->where('id', '!=', $enrollment->id)
+            ->pluck('student_id');
+
+        // available IDs = all students minus enrolledStudents, then ensure current student is included
+        $availableStudentIds = $students->pluck('id')->diff($enrolledStudents);
+        if (!$availableStudentIds->contains($enrollment->student_id)) {
+            $availableStudentIds->push($enrollment->student_id);
+        }
+
+        // Sections for the enrollment's grade level (include current section even if full)
+        $sections = Section::withCount([
+            'enrollments as enrollments_count' => function ($q) use ($enrollment) {
+                $q->where('semester_id', $enrollment->semester_id);
             }
-        ])->where('grade_level_id', $enrollment->grade_level_id);
+        ])
+            ->where('grade_level_id', $enrollment->grade_level_id)
+            ->get()
+            ->filter(fn($s) => $s->enrollments_count < $s->max_students || $s->id == $enrollment->section_id)
+            ->values(); // <-- Reindex the collection to avoid duplicates in Blade/Alpine
 
-        $sections = $sectionsQuery->get()->filter(fn($s) => $s->enrollments_count < $s->max_students || $s->id == $enrollment->section_id);
-
-        // Subjects for this grade level & semester
-        $subjects = SubjectOffering::with(['subject', 'teacher.user'])
-            ->where('semester_id', $activeSemester->id)
+        // SubjectOfferings for the enrollment
+        $subjects = SubjectOffering::with('subject', 'teacher.user')
+            ->where('semester_id', $enrollment->semester_id)
             ->whereHas('subject', fn($q) => $q->where('grade_level_id', $enrollment->grade_level_id))
             ->get();
 
-        // Students not yet enrolled (allow current student)
-        $enrolledStudents = Enrollment::where('semester_id', $activeSemester->id)
-            ->where('id', '!=', $enrollment->id)
-            ->pluck('student_id');
-        $availableStudentIds = $students->pluck('id')->diff($enrolledStudents);
+        // fee and financial data
+        $fee = $enrollment->fees;  // plural relationship -> single record
+        $financialData = $enrollment->financialInformation ?? null;
+
+        // selected subjects from pivot/relationship
+        $selectedSubjects = $enrollment->enrollmentSubjectOfferings->pluck('subject_offering_id')->toArray();
 
         return view('enrollments.edit', compact(
             'enrollment',
@@ -549,9 +429,14 @@ class EnrollmentController extends Controller
             'activeSemester',
             'gradeLevels',
             'sections',
-            'subjects'
+            'subjects',
+            'fee',
+            'financialData',
+            'selectedSubjects'
         ));
     }
+
+
 
 
 

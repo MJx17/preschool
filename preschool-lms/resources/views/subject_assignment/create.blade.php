@@ -12,10 +12,10 @@
             <div class="mb-6 text-red-600">
                 <ul class="list-disc pl-5">
                     @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
+                    <li>{{ $error }}</li>
                     @endforeach
                     @if($errors->has('duplicate'))
-                        <li>{{ $errors->first('duplicate') }}</li>
+                    <li>{{ $errors->first('duplicate') }}</li>
                     @endif
                 </ul>
             </div>
@@ -31,33 +31,45 @@
                         <label class="block font-semibold mb-1">Subject</label>
                         <select name="subject_id" class="w-full border rounded p-2">
                             @foreach ($subjects as $subject)
-                                <option value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>
-                                    {{ $subject->name }}
-                                </option>
+                            <option value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>
+                                {{ $subject->name }}
+                            </option>
                             @endforeach
                         </select>
                     </div>
 
                     <!-- Semester -->
-                    <div>
-                        <label class="block font-semibold mb-1">Semester</label>
-                        <select name="semester_id" class="w-full border rounded p-2">
-                            @foreach ($semesters as $sem)
-                                <option value="{{ $sem->id }}" {{ old('semester_id') == $sem->id ? 'selected' : '' }}>
-                                    {{ $sem->semester }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                 {{-- Semester --}}
+<div>
+    <label for="semester_id" class="block text-sm font-medium text-gray-700">Semester</label>
+    <input type="text" value="{{ $subject_assignment->semester->semester ?? '-' }}" disabled
+        class="w-full p-2 border rounded bg-gray-100 cursor-not-allowed">
+    <input type="hidden" name="semester_id" value="{{ $subject_assignment->semester_id ?? '' }}">
+</div>
+
+
 
                     <!-- Teacher -->
                     <div>
                         <label class="block font-semibold mb-1">Teacher</label>
                         <select name="teacher_id" class="w-full border rounded p-2">
                             @foreach ($teachers as $teacher)
-                                <option value="{{ $teacher->id }}" {{ old('teacher_id') == $teacher->id ? 'selected' : '' }}>
-                                    {{ $teacher->user->name }}
-                                </option>
+                            <option value="{{ $teacher->id }}" {{ old('teacher_id') == $teacher->id ? 'selected' : '' }}>
+                                {{ $teacher->user->name }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Section -->
+                    <div>
+                        <label class="block font-semibold mb-1">Section</label>
+                        <select name="section_id" class="w-full border rounded p-2" required>
+                            <option value="">Select Section</option>
+                            @foreach ($sections as $section)
+                            <option value="{{ $section->id }}" {{ old('section_id') == $section->id ? 'selected' : '' }}>
+                                {{ $section->name }} ({{ $section->gradeLevel->name }})
+                            </option>
                             @endforeach
                         </select>
                     </div>
@@ -91,12 +103,12 @@
                         <label class="block font-semibold mb-2">Days</label>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             @foreach(['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] as $day)
-                                <label class="flex items-center space-x-2">
-                                    <input type="checkbox" name="days[]" value="{{ $day }}"
-                                        {{ is_array(old('days')) && in_array($day, old('days')) ? 'checked' : '' }}
-                                        class="form-checkbox">
-                                    <span>{{ $day }}</span>
-                                </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="days[]" value="{{ $day }}"
+                                    {{ is_array(old('days')) && in_array($day, old('days')) ? 'checked' : '' }}
+                                    class="form-checkbox">
+                                <span>{{ $day }}</span>
+                            </label>
                             @endforeach
                         </div>
                     </div>

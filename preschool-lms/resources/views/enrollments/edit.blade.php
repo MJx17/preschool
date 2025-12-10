@@ -17,10 +17,10 @@
             <!-- Tabs Navigation -->
             <div class="flex border-b mb-4 space-x-6">
                 @foreach ([
-                    'student' => 'Student',
-                    'fees' => 'Tuition & Fees',
-                    'subjects' => 'Subjects',
-                    'financial' => 'Financial Info'
+                'student' => 'Student',
+                'fees' => 'Tuition & Fees',
+                'subjects' => 'Subjects',
+                'financial' => 'Financial Info'
                 ] as $tabKey => $tabLabel)
                 <button
                     type="button"
@@ -38,38 +38,35 @@
             <div class="mt-6">
 
                 <!-- Student Tab -->
+                <!-- Student Tab -->
                 <div x-show="activeTab === 'student'" x-cloak>
-                    <x-enrollment.student
+                    <x-enrollment.edit.student
                         :students="$students"
-                        :available-student-ids="$students->pluck('id')" 
-                        :active-semester="$activeSemester" 
+                        :active-semester="$activeSemester"
                         :grade-levels="$gradeLevels"
                         :sections="$sections"
-                        :old-data="old() ?: $enrollment"
-                        :selected-grade-level-id="$enrollment->grade_level_id"
                         :enrollment="$enrollment" />
                 </div>
 
                 <!-- Fees Tab -->
                 <div x-show="activeTab === 'fees'" x-cloak>
-                    <x-enrollment.fees 
-                        :old-data="old() ?: $fee"
+                    <x-enrollment.edit.fees
                         :fee="$fee" />
                 </div>
 
                 <!-- Subjects Tab -->
                 <div x-show="activeTab === 'subjects'" x-cloak>
-                    <x-enrollment.subjects 
-                        :subjects="$subjects ?? collect()" 
-                        :selected-subjects="$selectedSubjects ?? $enrollmentSubjects ?? []" />
+                    <x-enrollment.edit.subjects
+                        :subjects="$subjects"
+                        :selected-subjects="$selectedSubjects" />
                 </div>
 
                 <!-- Financial Tab -->
                 <div x-show="activeTab === 'financial'" x-cloak>
-                    <x-enrollment.financial
-                        :old-data="old() ?: $financialData"
+                    <x-enrollment.edit.financial
                         :enrollment="$financialData" />
                 </div>
+
             </div>
 
             <!-- Submit -->

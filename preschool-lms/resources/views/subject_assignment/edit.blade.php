@@ -6,17 +6,18 @@
     <div class="max-w-5xl mx-auto py-12 px-6">
         <div class="bg-white shadow-lg rounded-lg p-8">
             <form action="{{ route('subject_assignment.update', $subject_assignment->id) }}" method="POST"
-                  class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 @csrf
+                @method('PUT')
 
                 @if($errors->any())
-                    <div class="col-span-1 md:col-span-2 text-red-600 mb-4">
-                        <ul class="list-disc pl-5">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+                <div class="col-span-1 md:col-span-2 text-red-600 mb-4">
+                    <ul class="list-disc pl-5">
+                        @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
                 @endif
 
                 {{-- Subject --}}
@@ -24,9 +25,9 @@
                     <label for="subject_id" class="block text-sm font-medium text-gray-700">Subject</label>
                     <select name="subject_id" id="subject_id" required class="w-full p-2 border rounded">
                         @foreach($subjects as $subject)
-                            <option value="{{ $subject->id }}" {{ $subject_assignment->subject_id == $subject->id ? 'selected' : '' }}>
-                                {{ $subject->name }}
-                            </option>
+                        <option value="{{ $subject->id }}" {{ $subject_assignment->subject_id == $subject->id ? 'selected' : '' }}>
+                            {{ $subject->name }}
+                        </option>
                         @endforeach
                     </select>
                 </div>
@@ -34,50 +35,52 @@
                 {{-- Semester --}}
                 <div>
                     <label for="semester_id" class="block text-sm font-medium text-gray-700">Semester</label>
-                    <select name="semester_id" id="semester_id" required class="w-full p-2 border rounded">
-                        @foreach($semesters as $semester)
-                            <option value="{{ $semester->id }}" {{ $subject_assignment->semester_id == $semester->id ? 'selected' : '' }}>
-                                {{ $semester->semester }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <input type="text" value="{{ $subject_assignment->semester->semester ?? '-' }}" disabled
+                        class="w-full p-2 border rounded bg-gray-100 cursor-not-allowed">
+                    <input type="hidden" name="semester_id" value="{{ $subject_assignment->semester_id ?? '' }}">
                 </div>
+
 
                 {{-- Teacher --}}
                 <div>
                     <label for="teacher_id" class="block text-sm font-medium text-gray-700">Teacher</label>
                     <select name="teacher_id" id="teacher_id" required class="w-full p-2 border rounded">
                         @foreach($teachers as $teacher)
-                            <option value="{{ $teacher->id }}" {{ $subject_assignment->teacher_id == $teacher->id ? 'selected' : '' }}>
-                                {{ $teacher->user->name ?? 'N/A' }}
-                            </option>
+                        <option value="{{ $teacher->id }}" {{ $subject_assignment->teacher_id == $teacher->id ? 'selected' : '' }}>
+                            {{ $teacher->user->name ?? 'N/A' }}
+                        </option>
                         @endforeach
                     </select>
                 </div>
 
-                {{-- Block --}}
+                {{-- Section --}}
                 <div>
-                    <label for="block" class="block text-sm font-medium text-gray-700">Block</label>
-                    <input type="text" name="block" id="block" value="{{ old('block', $subject_assignment->block) }}" required
-                           class="w-full p-2 border rounded">
+                    <label for="section_id" class="block text-sm font-medium text-gray-700">Section</label>
+                    <select name="section_id" id="section_id" required class="w-full p-2 border rounded">
+                        @foreach($sections as $section)
+                        <option value="{{ $section->id }}" {{ $subject_assignment->section_id == $section->id ? 'selected' : '' }}>
+                            {{ $section->name }} ({{ $section->gradeLevel->name ?? 'N/A' }})
+                        </option>
+                        @endforeach
+                    </select>
                 </div>
 
                 {{-- Room --}}
                 <div>
                     <label for="room" class="block text-sm font-medium text-gray-700">Room</label>
                     <input type="text" name="room" id="room" value="{{ old('room', $subject_assignment->room) }}" required
-                           class="w-full p-2 border rounded">
+                        class="w-full p-2 border rounded">
                 </div>
 
                 {{-- Days --}}
                 <div class="col-span-1 md:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <label class="block text-sm font-medium text-gray-700 col-span-2">Days</label>
                     @foreach(['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] as $day)
-                        <label class="flex items-center gap-2">
-                            <input type="checkbox" name="days[]" value="{{ $day }}" class="rounded border-gray-300"
-                                   {{ in_array($day, old('days', $selectedDays)) ? 'checked' : '' }}>
-                            <span>{{ $day }}</span>
-                        </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="days[]" value="{{ $day }}" class="rounded border-gray-300"
+                            {{ in_array($day, old('days', $selectedDays)) ? 'checked' : '' }}>
+                        <span>{{ $day }}</span>
+                    </label>
                     @endforeach
                 </div>
 
@@ -85,14 +88,14 @@
                 <div>
                     <label for="start_time" class="block text-sm font-medium text-gray-700">Start Time</label>
                     <input type="time" name="start_time" id="start_time" value="{{ old('start_time', $subject_assignment->start_time) }}" required
-                           class="w-full p-2 border rounded">
+                        class="w-full p-2 border rounded">
                 </div>
 
                 {{-- End Time --}}
                 <div>
                     <label for="end_time" class="block text-sm font-medium text-gray-700">End Time</label>
                     <input type="time" name="end_time" id="end_time" value="{{ old('end_time', $subject_assignment->end_time) }}" required
-                           class="w-full p-2 border rounded">
+                        class="w-full p-2 border rounded">
                 </div>
 
                 {{-- Submit --}}

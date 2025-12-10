@@ -33,4 +33,8 @@ class Section extends Model
             'student_id'
         );
     }
+    public function subjectOfferings()
+    {
+        return $this->hasMany(SubjectOffering::class, 'section_id');
+    }
 }

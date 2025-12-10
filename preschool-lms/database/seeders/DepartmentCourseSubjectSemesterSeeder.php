@@ -120,69 +120,81 @@ class DepartmentCourseSubjectSemesterSeeder extends Seeder
         /** -----------------------------
          * 5. Subject Offerings per Section + Teacher
          * ----------------------------- */
-        $teachers = Teacher::all();
 
+        $teachers = Teacher::all();
+        $semesters = Semester::all();
+
+        // 1️⃣ Create or update SubjectOfferings per Section
         foreach (Subject::all() as $subject) {
-            foreach (Semester::all() as $semester) {
-                foreach ($subject->gradeLevel->sections as $section) {
+            $gradeLevel = $subject->gradeLevel;
+            if (!$gradeLevel) continue;
+
+            foreach ($gradeLevel->sections as $section) {
+                foreach ($semesters as $semester) {
                     $teacher = $teachers->random(); // assign a random teacher
-                    SubjectOffering::firstOrCreate([
-                        'subject_id' => $subject->id,
-                        'semester_id' => $semester->id,
-                        'teacher_id' => $teacher->id,
-                        'section_id' => $section->id,
-                    ], [
-                        'start_time' => '08:00:00',
-                        'end_time' => '09:00:00',
-                        'days' => json_encode(['Monday', 'Wednesday', 'Friday']),
-                        'room' => null,
-                    ]);
+
+                    // Use updateOrCreate instead of firstOrCreate
+                    SubjectOffering::updateOrCreate(
+                        [
+                            'subject_id' => $subject->id,
+                            'semester_id' => $semester->id,
+                            'section_id' => $section->id,
+                        ],
+                        [
+                            'teacher_id' => $teacher->id,
+                            'start_time' => '08:00:00',
+                            'end_time' => '09:00:00',
+                            'days' => json_encode(['Monday', 'Wednesday', 'Friday']),
+                            'room' => null,
+                        ]
+                    );
                 }
             }
         }
 
-        /** -----------------------------
-         * 6. Enroll Students into Active Semester
-         * ----------------------------- */
+        // 2️⃣ Enroll students and attach SubjectOfferings
         $students = Student::all();
-
         foreach ($students as $student) {
             $gradeCode = $student->grade_level_code ?? 'grade_1';
             $gradeLevel = GradeLevel::where('code', $gradeCode)->first();
             if (!$gradeLevel) continue;
 
+            // Assign a random section
             $section = $gradeLevel->sections->random();
 
-            // Enrollment
-            $enrollment = Enrollment::updateOrCreate([
-                'student_id' => $student->id,
-                'semester_id' => $activeSemester->id,
-                'grade_level_id' => $gradeLevel->id,
-            ], [
-                'category' => 'new',
-                'section_id' => $section->id,
-            ]);
+            // Create or update enrollment
+            $enrollment = Enrollment::updateOrCreate(
+                [
+                    'student_id' => $student->id,
+                    'semester_id' => $activeSemester->id,
+                ],
+                [
+                    'grade_level_id' => $gradeLevel->id,
+                    'section_id' => $section->id,
+                    'category' => 'new',
+                ]
+            );
 
-            $student->status = 'enrolled';
-            $student->save();
+            $student->update(['status' => 'enrolled']);
 
-            // Assign subject offerings for this section
-            $subjectOfferingIds = SubjectOffering::where('semester_id', $activeSemester->id)
-                ->where('section_id', $section->id)
-                ->pluck('id')
-                ->toArray();
+            // Attach SubjectOfferings for this section & semester
+            $section->subjectOfferings()
+                ->where('semester_id', $activeSemester->id)
+                ->get()
+                ->each(function ($subjectOffering) use ($enrollment) {
+                    EnrollmentSubjectOffering::updateOrCreate(
+                        [
+                            'enrollment_id' => $enrollment->id,
+                            'subject_offering_id' => $subjectOffering->id,
+                        ],
+                        [
+                            'status' => 'enrolled',
+                            'grade' => null,
+                        ]
+                    );
+                });
 
-            foreach ($subjectOfferingIds as $offeringId) {
-                EnrollmentSubjectOffering::updateOrCreate([
-                    'enrollment_id' => $enrollment->id,
-                    'subject_offering_id' => $offeringId,
-                ], [
-                    'status' => 'enrolled',
-                    'grade' => null,
-                ]);
-            }
-
-            // Fees
+            // 3️⃣ Fees & Payments
             $tuition = 5000;
             $lab = 500;
             $misc = 300;
@@ -216,22 +228,24 @@ class DepartmentCourseSubjectSemesterSeeder extends Seeder
                 'status' => 'Pending',
             ]);
 
-            // Financial Information
-            FinancialInformation::create([
-                'enrollment_id' => $enrollment->id,
-                'financier' => 'Myself',
-                'company_name' => 'ABC Corp',
-                'company_address' => '123 Street',
-                'income' => 35000,
-                'scholarship' => 5000,
-                'contact_number' => '123-456-7890',
-                'relative_names' => json_encode(['John Doe', 'Jane Smith']),
-                'relationships' => json_encode(['Father', 'Mother']),
-                'position_courses' => json_encode(['Manager', 'Engineer']),
-                'relative_contact_numbers' => json_encode(['987-654-3210', '555-123-4567']),
-            ]);
+            // 4️⃣ Financial Information (optional)
+            FinancialInformation::updateOrCreate(
+                ['enrollment_id' => $enrollment->id],
+                [
+                    'financier' => 'Myself',
+                    'company_name' => 'ABC Corp',
+                    'company_address' => '123 Street',
+                    'income' => 35000,
+                    'scholarship' => 5000,
+                    'contact_number' => '123-456-7890',
+                    'relative_names' => json_encode(['John Doe', 'Jane Smith']),
+                    'relationships' => json_encode(['Father', 'Mother']),
+                    'position_courses' => json_encode(['Manager', 'Engineer']),
+                    'relative_contact_numbers' => json_encode(['987-654-3210', '555-123-4567']),
+                ]
+            );
         }
 
-        $this->command->info('Seeding completed: Grade Levels, Sections, Subjects, Offerings, Enrollments, Fees & Payments!');
+        $this->command->info('Seeding completed: Enrollments, SubjectOfferings, Fees & Payments!');
     }
 }
