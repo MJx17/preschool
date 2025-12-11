@@ -55,11 +55,13 @@
 
     <!-- Section -->
     <div>
-        <select name="section_id" required x-model="selectedSection" class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-500 @error('grade_level_id') border-red-500 @enderror">
+        <select name="section_id" required
+            x-model="selectedSection"
+            @change="window.dispatchEvent(new CustomEvent('section-changed', { detail: selectedSection }))"
+            class="w-full p-3 border rounded">
             <option value="" disabled>Select Section</option>
             <template x-for="section in sections" :key="section.id">
                 <option :value="section.id"
-                    :selected="section.id == selectedSection"
                     x-text="`${section.name} (${section.enrollments_count}/${section.max_students})`">
                 </option>
             </template>
@@ -86,51 +88,53 @@
 </div>
 
 <script>
-    function studentSection() {
-        return {
-            grade_level_id: @json(old('grade_level_id') ?? $selectedGradeLevelId ?? ''),
-            sections: @json($sections ?? []),
-            selectedSection: @json(old('section_id') ?? ''),
+   function studentSection() {
+    return {
+        grade_level_id: @json(old('grade_level_id') ?? $selectedGradeLevelId ?? ''),
+        sections: @json($sections ?? []),
+        selectedSection: @json(old('section_id') ?? ''),
 
-            async init() {
-                // If grade level already selected, load sections
-                if (this.grade_level_id) {
-                    await this.loadSections();
-                }
-            },
-
-            async loadSections() {
-                if (!this.grade_level_id) {
-                    this.sections = [];
-                    this.selectedSection = '';
-                    window.dispatchEvent(new CustomEvent('grade-changed', {
-                        detail: null
-                    }));
-                    return;
-                }
-
-                try {
-                    const response = await fetch(`/sections/grade/${this.grade_level_id}`);
-                    const data = await response.json();
-                    this.sections = data;
-
-                    // Keep old selection if it exists in the new list
-                    if (!this.sections.find(s => s.id == this.selectedSection)) {
-                        this.selectedSection = '';
-                    }
-
-                    window.dispatchEvent(new CustomEvent('grade-changed', {
-                        detail: this.grade_level_id
-                    }));
-                } catch (error) {
-                    console.error('Error loading sections:', error);
-                    this.sections = [];
-                    this.selectedSection = '';
-                    window.dispatchEvent(new CustomEvent('grade-changed', {
-                        detail: null
-                    }));
-                }
+        async init() {
+            if (this.grade_level_id) {
+                await this.loadSections();
             }
+        },
+
+        async loadSections() {
+            if (!this.grade_level_id) {
+                this.sections = [];
+                this.selectedSection = null;
+                this.fireSectionChanged();
+                return;
+            }
+
+            try {
+                const response = await fetch(`/sections/grade/${this.grade_level_id}`);
+                const data = await response.json();
+                this.sections = data;
+
+                // Pick the first section if old selection no longer exists
+                if (!this.sections.find(s => s.id == this.selectedSection)) {
+                    this.selectedSection = this.sections.length ? this.sections[0].id : null;
+                }
+
+                // Always fire event
+                this.fireSectionChanged();
+
+            } catch (error) {
+                console.error('Error loading sections:', error);
+                this.sections = [];
+                this.selectedSection = null;
+                this.fireSectionChanged();
+            }
+        },
+
+        fireSectionChanged() {
+            window.dispatchEvent(new CustomEvent('section-changed', {
+                detail: this.selectedSection
+            }));
         }
     }
+}
+
 </script>

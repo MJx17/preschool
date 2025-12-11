@@ -251,47 +251,38 @@ class EnrollmentController extends Controller
 
     public function getSubjects(Request $request)
     {
-        $gradeLevelId = $request->input('grade_level_id');
-        $semesterId   = $request->input('semester_id');
+        $sectionId  = $request->input('section_id');
+        $semesterId = $request->input('semester_id');
 
-        // Ensure we have a semester ID, fallback to active semester
+        // fallback to active semester if none provided
         if (!$semesterId) {
             $activeSemester = Semester::where('status', 'active')->first();
             $semesterId = $activeSemester?->id;
         }
 
-        // Query subjects
-        $subjects = Subject::with(['gradeLevel', 'subjectOfferings' => function ($q) use ($semesterId) {
-            $q->where('semester_id', $semesterId);
-        }]);
-
-        // Filter by grade level if provided
-        if ($gradeLevelId) {
-            $subjects->where('grade_level_id', $gradeLevelId);
+        if (!$sectionId) {
+            return response()->json(['error' => 'Section ID is required'], 422);
         }
 
-        $subjects = $subjects->get();
+        // Fetch SubjectOfferings for the section + semester
+        $subjectOfferings = SubjectOffering::with(['subject', 'teacher.user'])
+            ->where('section_id', $sectionId)
+            ->where('semester_id', $semesterId)
+            ->get();
 
-        // Group by grade level name (optional)
-        $subjectsByGrade = $subjects->groupBy(fn($subject) => $subject->gradeLevel->name ?? 'Unknown');
-
-        // Transform to a simple structure for frontend
-        $result = [];
-        foreach ($subjectsByGrade as $gradeName => $subjects) {
-            $result[$gradeName] = $subjects->map(fn($s) => [
-                'id'   => $s->id,
-                'name' => $s->name,
-                'code' => $s->code,
-                'offerings' => $s->subjectOfferings->map(fn($so) => [
-                    'id' => $so->id,
-                    'teacher_id' => $so->teacher_id,
-                    'room' => $so->room,
-                    'days' => $so->days,
-                    'start_time' => $so->start_time,
-                    'end_time' => $so->end_time,
-                ]),
-            ]);
-        }
+        // Transform for frontend
+        $result = $subjectOfferings->map(fn($so) => [
+            'id'          => $so->id,
+            'subject_id'  => $so->subject->id,
+            'subject_name' => $so->subject->name,
+            'subject_code' => $so->subject->code,
+            'teacher_id'  => $so->teacher_id,
+            'teacher_name' => $so->teacher->user->name ?? 'N/A',
+            'room'        => $so->room,
+            'days'         => $so->formatted_days,
+            'start_time'  => $so->start_time,
+            'end_time'    => $so->end_time,
+        ]);
 
         return response()->json($result);
     }
@@ -370,7 +361,6 @@ class EnrollmentController extends Controller
         return view('enrollments.fees', compact('enrollment', 'totalFees', 'balance', 'installmentAmount', 'payment', 'remainingBalance', 'overallStatus'));
     }
 
-
     public function edit($id)
     {
         $enrollment = Enrollment::with([
@@ -379,12 +369,12 @@ class EnrollmentController extends Controller
             'gradeLevel',
             'fees',
             'financialInformation',
-            'enrollmentSubjectOfferings'
+            'enrollmentSubjectOfferings.subjectOffering.subject',
+            'enrollmentSubjectOfferings.subjectOffering.teacher.user'
         ])->findOrFail($id);
 
         $students = Student::orderBy('surname')->get();
         $gradeLevels = GradeLevel::orderBy('name')->get();
-
         $activeSemester = Semester::where('status', 'active')->first();
 
         // Students not yet enrolled in this semester (exclude this enrollment)
@@ -392,7 +382,6 @@ class EnrollmentController extends Controller
             ->where('id', '!=', $enrollment->id)
             ->pluck('student_id');
 
-        // available IDs = all students minus enrolledStudents, then ensure current student is included
         $availableStudentIds = $students->pluck('id')->diff($enrolledStudents);
         if (!$availableStudentIds->contains($enrollment->student_id)) {
             $availableStudentIds->push($enrollment->student_id);
@@ -406,21 +395,31 @@ class EnrollmentController extends Controller
         ])
             ->where('grade_level_id', $enrollment->grade_level_id)
             ->get()
+            ->unique('id') // remove duplicates
             ->filter(fn($s) => $s->enrollments_count < $s->max_students || $s->id == $enrollment->section_id)
-            ->values(); // <-- Reindex the collection to avoid duplicates in Blade/Alpine
+            ->values();
 
-        // SubjectOfferings for the enrollment
-        $subjects = SubjectOffering::with('subject', 'teacher.user')
-            ->where('semester_id', $enrollment->semester_id)
-            ->whereHas('subject', fn($q) => $q->where('grade_level_id', $enrollment->grade_level_id))
-            ->get();
+        // Subjects for display (use existing enrollment subjects, no extra mapping needed)
+        $subjects = $enrollment->enrollmentSubjectOfferings->map(function ($eso) {
+            $so = $eso->subjectOffering;
+            return [
+                'id' => $eso->id,
+                'code' => $so->subject->code ?? 'N/A',
+                'name' => $so->subject->name ?? 'N/A',
+                'units' => $so->subject->units ?? 'N/A',
+                'days' => $so->days ?? [],
+                'time' => ($so->start_time && $so->end_time) ? $so->start_time . ' - ' . $so->end_time : 'N/A',
+                'room' => $so->room ?? 'N/A',
+                'teacher' => $so->teacher ? $so->teacher->user->fullname : 'N/A',
+            ];
+        });
 
-        // fee and financial data
-        $fee = $enrollment->fees;  // plural relationship -> single record
-        $financialData = $enrollment->financialInformation ?? null;
-
-        // selected subjects from pivot/relationship
+        // Pre-selected subjects for multi-select
         $selectedSubjects = $enrollment->enrollmentSubjectOfferings->pluck('subject_offering_id')->toArray();
+
+        // Fee and financial data
+        $fee = $enrollment->fees;
+        $financialData = $enrollment->financialInformation ?? null;
 
         return view('enrollments.edit', compact(
             'enrollment',
@@ -435,7 +434,6 @@ class EnrollmentController extends Controller
             'selectedSubjects'
         ));
     }
-
 
 
 
@@ -468,14 +466,14 @@ class EnrollmentController extends Controller
             'relative_contact_numbers' => 'nullable|array',
         ]);
 
-        DB::transaction(function () use ($validated, $id, $request) {
-
+        DB::transaction(function () use ($validated, $id) {
             $enrollment = Enrollment::findOrFail($id);
 
             // 1️⃣ Check section capacity if changed
             if ($validated['section_id'] != $enrollment->section_id) {
-                $section = Section::withCount(['enrollments' => function ($q) use ($validated) {
-                    $q->where('semester_id', $validated['semester_id']);
+                $section = Section::withCount(['enrollments' => function ($q) use ($validated, $enrollment) {
+                    $q->where('semester_id', $validated['semester_id'])
+                        ->where('id', '!=', $enrollment->id);
                 }])->findOrFail($validated['section_id']);
 
                 if ($section->enrollments_count >= $section->max_students) {
@@ -494,8 +492,8 @@ class EnrollmentController extends Controller
                 'category' => $validated['category'],
             ]);
 
-            // 3️⃣ Update subjects
-            if (!empty($validated['subjects'])) {
+            // 3️⃣ Update subjects only if submitted
+            if (isset($validated['subjects'])) {
                 $currentSubjects = EnrollmentSubjectOffering::where('enrollment_id', $enrollment->id)
                     ->pluck('subject_offering_id')->toArray();
 
@@ -508,15 +506,16 @@ class EnrollmentController extends Controller
 
                 // Add new
                 foreach (array_diff($newSubjects, $currentSubjects) as $subjectId) {
-                    EnrollmentSubjectOffering::updateOrCreate([
-                        'enrollment_id' => $enrollment->id,
-                        'subject_offering_id' => $subjectId
-                    ], ['status' => 'enrolled', 'grade' => null]);
+                    EnrollmentSubjectOffering::updateOrCreate(
+                        ['enrollment_id' => $enrollment->id, 'subject_offering_id' => $subjectId],
+                        ['status' => 'enrolled', 'grade' => null]
+                    );
                 }
             }
+            // If subjects field not submitted, old subjects remain unchanged
 
             // 4️⃣ Update fees
-            $fee = Fee::firstOrCreate(
+            $fee = Fee::updateOrCreate(
                 ['enrollment_id' => $enrollment->id],
                 [
                     'tuition_fee' => $validated['tuition_fee'],
@@ -528,49 +527,39 @@ class EnrollmentController extends Controller
                 ]
             );
 
-            $fee->update([
-                'tuition_fee' => $validated['tuition_fee'],
-                'lab_fee' => $validated['lab_fee'] ?? 0,
-                'miscellaneous_fee' => $validated['miscellaneous_fee'] ?? 0,
-                'other_fee' => $validated['other_fee'] ?? 0,
-                'discount' => $validated['discount'] ?? 0,
-                'initial_payment' => $validated['initial_payment'] ?? 0,
-            ]);
-
             // 5️⃣ Update payment installments
             $total = $fee->tuition_fee + $fee->lab_fee + $fee->miscellaneous_fee + $fee->other_fee;
             $remaining = max($total - $fee->discount - $fee->initial_payment, 0);
             $installment = $remaining / 4;
 
-            $payment = Payment::firstOrCreate(['fee_id' => $fee->id]);
-            $payment->update([
-                'prelims_payment' => $installment,
-                'midterms_payment' => $installment,
-                'pre_final_payment' => $installment,
-                'final_payment' => $installment,
-            ]);
+            Payment::updateOrCreate(
+                ['fee_id' => $fee->id],
+                [
+                    'prelims_payment' => $installment,
+                    'midterms_payment' => $installment,
+                    'pre_final_payment' => $installment,
+                    'final_payment' => $installment,
+                ]
+            );
 
             // 6️⃣ Update student status
             $enrollment->student->update(['status' => 'enrolled']);
 
             // 7️⃣ Update financial info
-            $financialData = [
-                'enrollment_id' => $enrollment->id,
-                'financier' => $validated['financier'] ?? null,
-                'company_name' => $validated['company_name'] ?? null,
-                'company_address' => $validated['company_address'] ?? null,
-                'contact_number' => $validated['contact_number'] ?? null,
-                'income' => $validated['income'] ?? null,
-                'scholarship' => $validated['scholarship'] ?? null,
-                'relative_names' => json_encode($validated['relative_names'] ?? []),
-                'relationships' => json_encode($validated['relationships'] ?? []),
-                'position_courses' => json_encode($validated['position_courses'] ?? []),
-                'relative_contact_numbers' => json_encode($validated['relative_contact_numbers'] ?? []),
-            ];
-
             FinancialInformation::updateOrCreate(
                 ['enrollment_id' => $enrollment->id],
-                $financialData
+                [
+                    'financier' => $validated['financier'] ?? null,
+                    'company_name' => $validated['company_name'] ?? null,
+                    'company_address' => $validated['company_address'] ?? null,
+                    'contact_number' => $validated['contact_number'] ?? null,
+                    'income' => $validated['income'] ?? null,
+                    'scholarship' => $validated['scholarship'] ?? null,
+                    'relative_names' => json_encode($validated['relative_names'] ?? []),
+                    'relationships' => json_encode($validated['relationships'] ?? []),
+                    'position_courses' => json_encode($validated['position_courses'] ?? []),
+                    'relative_contact_numbers' => json_encode($validated['relative_contact_numbers'] ?? []),
+                ]
             );
         });
 

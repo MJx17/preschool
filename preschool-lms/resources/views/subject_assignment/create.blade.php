@@ -39,14 +39,23 @@
                     </div>
 
                     <!-- Semester -->
-                 {{-- Semester --}}
-<div>
-    <label for="semester_id" class="block text-sm font-medium text-gray-700">Semester</label>
-    <input type="text" value="{{ $subject_assignment->semester->semester ?? '-' }}" disabled
-        class="w-full p-2 border rounded bg-gray-100 cursor-not-allowed">
-    <input type="hidden" name="semester_id" value="{{ $subject_assignment->semester_id ?? '' }}">
-</div>
+                    {{-- Semester --}}
+                    <div>
+                        <label for="semester_id" class="block text-sm font-medium text-gray-700">Semester</label>
 
+                        {{-- Show semester name --}}
+                        <input
+                            type="text"
+                            value="{{ $activeSemester->semester }}"
+                            readonly
+                            class="w-full p-2 border rounded bg-gray-100">
+
+                        {{-- Actual value submitted --}}
+                        <input
+                            type="hidden"
+                            name="semester_id"
+                            value="{{ $activeSemester->id }}">
+                    </div>
 
 
                     <!-- Teacher -->
