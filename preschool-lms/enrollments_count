@@ -1,1 +1,0 @@
-$section- . ': ' . $section- . ' students' . PHP_EOL;
