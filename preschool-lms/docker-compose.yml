@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: laravel-app
+    environment:
+      APP_ENV: production
+      APP_DEBUG: false
+      APP_KEY: base64:YOUR_APP_KEY_HERE
+      DB_CONNECTION: pgsql
+      DB_URL: postgresql://admin:f47Tx7GiiiFwV3Nak1QH50rLVAnvix1W@dpg-d4u20v717kns73cvtckg-a.oregon-postgres.render.com/carisian
+      DB_SSLMODE: require
+    ports:
+      - "9000:9000"
+    volumes:
+      - .:/var/www/html
