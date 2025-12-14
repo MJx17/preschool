@@ -33,7 +33,7 @@ $programs = [
 ];
 @endphp
 
-<section id="programs" class="min-h-screen flex flex-col bg-gray-50 py-16 ">
+<section id="programs" class=" flex flex-col bg-gray-50 py-16 justify-center align-center">
   <div class="w-full px-4 sm:px-6 lg:px-20 mx-auto">
     <!-- Heading -->
     <h2 class="text-3xl md:text-4xl font-bold mb-12 text-center">Our Programs</h2>
@@ -44,15 +44,17 @@ $programs = [
         <div class="swiper-wrapper">
           @foreach($programs as $program)
           <div class="swiper-slide flex justify-center">
-            <div class="bg-white shadow-lg rounded-2xl overflow-hidden  w-full flex flex-col mb-20">
-              <!-- Image -->
-              <img src="{{ asset($program['image']) }}" alt="{{ $program['title'] }}"
-                class="w-full h-[180px] object-cover" />
+            <div class="bg-white rounded-2xl overflow-hidden w-full max-w-xs flex flex-col text-left">
+              <!-- Image Full Width -->
+              <img src="{{ asset($program['image']) }}" alt="{{ $program['title'] }}" class="w-full h-48 object-cover" />
 
-              <!-- Text -->
-              <div class="p-4 flex flex-col flex-grow">
-                <h3 class="text-lg font-semibold mb-2">{{ $program['title'] }}</h3>
+              <!-- Content -->
+              <div class="p-6 flex flex-col items-start space-y-3">
+                <h3 class="text-xl font-semibold">{{ $program['title'] }}</h3>
                 <p class="text-gray-600 text-sm">{{ $program['description'] }}</p>
+                <a href="#" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full transition">
+                  Learn More
+                </a>
               </div>
             </div>
           </div>
@@ -62,35 +64,29 @@ $programs = [
     </div>
   </div>
 </section>
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const swiperEl = document.querySelector(".programs-swiper");
 
-    if (swiperEl) {
-      new Swiper(swiperEl, {
-        loop: false,
-        spaceBetween: 20,
-        slidesPerView: "auto",
-        centeredSlides: false,
-        autoplay: {
-          delay: 5000,
-          disableOnInteraction: false,
-        },
-        breakpoints: {
-          320: {
-            slidesPerView: 1
-          },
-          640: {
-            slidesPerView: 2
-          },
-          1024: {
-            slidesPerView: 3
-          },
-          1440: {
-            slidesPerView: 4
-          },
-        },
-      });
-    }
-  });
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const swiperEl = document.querySelector(".programs-swiper");
+
+  if (swiperEl) {
+    new Swiper(swiperEl, {
+      loop: false,
+      spaceBetween: 20,
+      slidesPerView: "auto",
+      centeredSlides: false,
+      autoplay: {
+        delay: 5000,
+        disableOnInteraction: false,
+      },
+      breakpoints: {
+        320: { slidesPerView: 1 },
+        640: { slidesPerView: 2 },
+        1024: { slidesPerView: 4 },
+        1440: { slidesPerView: 5 },
+      },
+    });
+  }
+});
 </script>

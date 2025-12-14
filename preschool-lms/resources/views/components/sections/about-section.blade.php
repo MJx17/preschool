@@ -1,4 +1,4 @@
-<section id="about" class="py-16 bg-white">
+<section id="about" class=" bg-white">
     <div class="max-w-6xl mx-auto px-6 space-y-20">
 
         <div class="w-screen bg-gray-200 py-16 relative left-1/2 right-1/2 -mx-[50vw]">
@@ -94,14 +94,16 @@
         </div>
 
         <!-- Organizational Chart -->
-        <div class="w-screen bg-gray-200 py-16 relative left-1/2 right-1/2 -mx-[50vw]">
+      
+        <div class="w-screen bg-gray-200 relative left-1/2 right-1/2 -mx-[50vw]">
             <div class="max-w-6xl mx-auto px-6">
-                <div class="flex flex-col items-center justify-center min-h-screen text-center px-6">
-                    <h2 class="text-5xl font-bold mb-8">Organizational Structure</h2>
+                <div class="flex flex-col items-center justify-center text-center">
+                    <h2 class="text-5xl font-bold mb-8 mt-4">Organizational Structure</h2>
                     <img src="{{ asset('/org-chart.png') }}" alt="Organizational Chart"
-                        class="rounded-xl shadow-lg w-full max-w-6xl" />
+                        class="rounded-xl shadow-lg w-full max-w-6xl mb-16" />
                 </div>
             </div>
         </div>
+ 
     </div>
 </section>

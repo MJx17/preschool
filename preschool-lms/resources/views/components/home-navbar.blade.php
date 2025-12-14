@@ -5,7 +5,7 @@
             <!-- Logo -->
             <div class="flex items-center">
                 <a href="#hero" class="text-xl font-bold text-white drop-shadow-lg">
-                    MySchool
+                    Carrisian
                 </a>
             </div>
 
