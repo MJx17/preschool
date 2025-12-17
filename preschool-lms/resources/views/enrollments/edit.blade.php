@@ -44,8 +44,11 @@
                         :students="$students"
                         :active-semester="$activeSemester"
                         :grade-levels="$gradeLevels"
-                        :sections="$sections"
-                        :enrollment="$enrollment" />
+                        :enrollment="$enrollment"
+
+                        :old-data="old()"
+                        :selected-grade-level-id="$selectedGradeLevelId" />
+
                 </div>
 
                 <!-- Fees Tab -->
@@ -56,15 +59,14 @@
 
                 <!-- Subjects Tab -->
                 <div x-show="activeTab === 'subjects'" x-cloak>
-                    <x-enrollment.edit.subjects
-                        :subjects="$subjects"
-                        :selected-subjects="$selectedSubjects" />
+                    <x-enrollment.edit.subjects :subjects="$subjects ?? collect()" />
                 </div>
+
 
                 <!-- Financial Tab -->
                 <div x-show="activeTab === 'financial'" x-cloak>
                     <x-enrollment.edit.financial
-                        :enrollment="$financialData" />
+                        :financial-data="$financialData" />
                 </div>
 
             </div>

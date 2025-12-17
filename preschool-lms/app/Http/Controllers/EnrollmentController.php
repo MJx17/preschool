@@ -369,71 +369,37 @@ class EnrollmentController extends Controller
             'gradeLevel',
             'fees',
             'financialInformation',
-            'enrollmentSubjectOfferings.subjectOffering.subject',
-            'enrollmentSubjectOfferings.subjectOffering.teacher.user'
+            'enrollmentSubjectOfferings',
         ])->findOrFail($id);
 
         $students = Student::orderBy('surname')->get();
         $gradeLevels = GradeLevel::orderBy('name')->get();
         $activeSemester = Semester::where('status', 'active')->first();
 
-        // Students not yet enrolled in this semester (exclude this enrollment)
-        $enrolledStudents = Enrollment::where('semester_id', $enrollment->semester_id)
-            ->where('id', '!=', $enrollment->id)
-            ->pluck('student_id');
+        // For consistency with create, don't preload sections
+        $sections = collect();
 
-        $availableStudentIds = $students->pluck('id')->diff($enrolledStudents);
-        if (!$availableStudentIds->contains($enrollment->student_id)) {
-            $availableStudentIds->push($enrollment->student_id);
-        }
+        $selectedGradeLevelId = old('grade_level_id') ?? null;
 
-        // Sections for the enrollment's grade level (include current section even if full)
-        $sections = Section::withCount([
-            'enrollments as enrollments_count' => function ($q) use ($enrollment) {
-                $q->where('semester_id', $enrollment->semester_id);
-            }
-        ])
-            ->where('grade_level_id', $enrollment->grade_level_id)
-            ->get()
-            ->unique('id') // remove duplicates
-            ->filter(fn($s) => $s->enrollments_count < $s->max_students || $s->id == $enrollment->section_id)
-            ->values();
-
-        // Subjects for display (use existing enrollment subjects, no extra mapping needed)
-        $subjects = $enrollment->enrollmentSubjectOfferings->map(function ($eso) {
-            $so = $eso->subjectOffering;
-            return [
-                'id' => $eso->id,
-                'code' => $so->subject->code ?? 'N/A',
-                'name' => $so->subject->name ?? 'N/A',
-                'units' => $so->subject->units ?? 'N/A',
-                'days' => $so->days ?? [],
-                'time' => ($so->start_time && $so->end_time) ? $so->start_time . ' - ' . $so->end_time : 'N/A',
-                'room' => $so->room ?? 'N/A',
-                'teacher' => $so->teacher ? $so->teacher->user->fullname : 'N/A',
-            ];
-        });
-
-        // Pre-selected subjects for multi-select
-        $selectedSubjects = $enrollment->enrollmentSubjectOfferings->pluck('subject_offering_id')->toArray();
-
-        // Fee and financial data
+        // Variables required by the Blade (for consistency)
         $fee = $enrollment->fees;
         $financialData = $enrollment->financialInformation ?? null;
+        $selectedSubjects = $enrollment->enrollmentSubjectOfferings->pluck('subject_offering_id')->toArray();
 
         return view('enrollments.edit', compact(
             'enrollment',
             'students',
-            'availableStudentIds',
-            'activeSemester',
             'gradeLevels',
-            'sections',
-            'subjects',
+            'activeSemester',
+            'sections',             // empty for now
+            'selectedGradeLevelId',
             'fee',
             'financialData',
             'selectedSubjects'
         ));
     }
+
+
 
 
 

@@ -161,4 +161,16 @@ class SubjectOffering extends Model
     {
         return $this->category ? ucfirst($this->category) : null;
     }
+
+
+      public function getFormattedStartTimeAttribute()
+    {
+        return $this->start_time ? \Carbon\Carbon::parse($this->start_time)->format('H:i') : null;
+    }
+
+    // Accessor for end_time in H:i format
+    public function getFormattedEndTimeAttribute()
+    {
+        return $this->end_time ? \Carbon\Carbon::parse($this->end_time)->format('H:i') : null;
+    }
 }

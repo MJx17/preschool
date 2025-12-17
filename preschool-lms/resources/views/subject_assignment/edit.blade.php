@@ -87,16 +87,23 @@
                 {{-- Start Time --}}
                 <div>
                     <label for="start_time" class="block text-sm font-medium text-gray-700">Start Time</label>
-                    <input type="time" name="start_time" id="start_time" value="{{ old('start_time', $subject_assignment->start_time) }}" required
+                    <input type="time"
+                        name="start_time"
+                        value="{{ old('start_time', $subject_assignment->formatted_start_time) }}"
+                        required
                         class="w-full p-2 border rounded">
                 </div>
 
                 {{-- End Time --}}
                 <div>
                     <label for="end_time" class="block text-sm font-medium text-gray-700">End Time</label>
-                    <input type="time" name="end_time" id="end_time" value="{{ old('end_time', $subject_assignment->end_time) }}" required
+                    <input type="time"
+                        name="end_time"
+                        value="{{ old('end_time', $subject_assignment->formatted_end_time) }}"
+                        required
                         class="w-full p-2 border rounded">
                 </div>
+
 
                 {{-- Submit --}}
                 <div class="col-span-1 md:col-span-2 flex justify-end gap-4 mt-4">

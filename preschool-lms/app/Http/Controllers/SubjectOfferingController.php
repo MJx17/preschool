@@ -120,6 +120,15 @@ class SubjectOfferingController extends Controller
     public function edit($id)
     {
         $subject_assignment = SubjectOffering::findOrFail($id);
+
+        // Format times for Blade
+        $subject_assignment->start_time = $subject_assignment->start_time
+            ? \Carbon\Carbon::parse($subject_assignment->start_time)->format('H:i')
+            : null;
+        $subject_assignment->end_time = $subject_assignment->end_time
+            ? \Carbon\Carbon::parse($subject_assignment->end_time)->format('H:i')
+            : null;
+
         $subjects  = Subject::all();
         $semesters = Semester::all();
         $teachers  = Teacher::with('user')->get();
