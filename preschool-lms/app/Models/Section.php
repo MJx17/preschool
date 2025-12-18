@@ -22,17 +22,17 @@ class Section extends Model
         return $this->hasMany(Enrollment::class);
     }
 
-    public function students()
-    {
-        return $this->hasManyThrough(
-            Student::class,
-            Enrollment::class,
-            'section_id',
-            'id',
-            'id',
-            'student_id'
-        );
-    }
+   public function students()
+{
+    return $this->hasManyThrough(
+        Student::class,
+        EnrollmentSubjectOffering::class,
+        'subject_offering_id', // FK on pivot table
+        'id',                  // PK on students
+        'id',                  // PK on this model (subject_offering)
+        'enrollment_id'        // FK on pivot table
+    );
+}
     public function subjectOfferings()
     {
         return $this->hasMany(SubjectOffering::class, 'section_id');

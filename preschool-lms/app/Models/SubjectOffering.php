@@ -29,12 +29,11 @@ class SubjectOffering extends Model
     {
         return $this->belongsTo(Subject::class);
     }
+
     public function lessons()
     {
-        return $this->hasMany(Lesson::class, 'subject_offerings_id'); // also specify the foreign key
+        return $this->hasMany(Lesson::class, 'subject_offerings_id');
     }
-
-
 
     public function semester()
     {
@@ -56,7 +55,6 @@ class SubjectOffering extends Model
         return $this->hasMany(Grade::class, 'subject_offerings_id', 'id');
     }
 
-
     /**
      * Pivot: Enrollment ↔ SubjectOffering
      */
@@ -66,40 +64,37 @@ class SubjectOffering extends Model
     }
 
     /**
-     * All enrollments attached to this subject offering
+     * All enrollments attached to this subject offering via pivot
      */
     public function enrollments()
     {
         return $this->hasManyThrough(
             Enrollment::class,
             EnrollmentSubjectOffering::class,
-            'subject_offerings_id',   // FK on pivot
-            'id',                    // PK on enrollment
-            'id',                    // PK on subject offering
+            'subject_offering_id',   // FK on pivot
+            'id',                    // PK on Enrollment
+            'id',                    // PK on SubjectOffering
             'enrollment_id'          // FK on pivot
         );
     }
 
     /**
-     * All students enrolled in this subject offering
+     * All students enrolled in this subject offering via pivot
      */
     public function students()
     {
         return $this->hasManyThrough(
             Student::class,
-            Enrollment::class,
-            'id',                    // enrollment.id
-            'id',                    // student.id
-            'id',                    // subject_offering.id
-            'student_id'             // enrollment.student_id
-        )->whereIn(
-            'enrollments.id',
-            $this->enrollmentSubjectOfferings()->pluck('enrollment_id')
+            EnrollmentSubjectOffering::class,
+            'subject_offering_id', // FK on pivot
+            'id',                  // PK on Student
+            'id',                  // PK on SubjectOffering
+            'enrollment_id'        // FK on pivot
         );
     }
 
     /**
-     * Attendance Sessions (already correct)
+     * Attendance Sessions
      */
     public function attendanceSessions()
     {
@@ -163,7 +158,7 @@ class SubjectOffering extends Model
     }
 
 
-      public function getFormattedStartTimeAttribute()
+    public function getFormattedStartTimeAttribute()
     {
         return $this->start_time ? \Carbon\Carbon::parse($this->start_time)->format('H:i') : null;
     }

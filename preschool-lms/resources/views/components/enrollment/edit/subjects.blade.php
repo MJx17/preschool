@@ -46,13 +46,19 @@
     <script>
         function subjectsTab() {
             return {
-                // Preload subjects and selected subjects from backend for edit
                 subjects: @json($subjects ?? []),
 
                 init() {
-                    window.addEventListener('section-changed', event => {
+                    // listen globally
+                    window.addEventListener('section-changed', (event) => {
                         this.fetchSubjects(event.detail);
                     });
+
+                    // 🔥 EDIT MODE FIX: auto-load if section already selected
+                    const sectionInput = document.querySelector('select[name="section_id"]');
+                    if (sectionInput && sectionInput.value) {
+                        this.fetchSubjects(sectionInput.value);
+                    }
                 },
 
                 async fetchSubjects(sectionId) {
@@ -64,10 +70,11 @@
                     const semesterId = document.querySelector('input[name="semester_id"]').value;
 
                     try {
-                        const response = await fetch(`{{ route('get.subjects') }}?section_id=${sectionId}&semester_id=${semesterId}`);
-                        const data = await response.json();
+                        const response = await fetch(
+                            `{{ route('get.subjects') }}?section_id=${sectionId}&semester_id=${semesterId}`
+                        );
 
-                        this.subjects = data;
+                        this.subjects = await response.json();
 
                     } catch (error) {
                         console.error('Error fetching subjects:', error);
@@ -77,4 +84,5 @@
             }
         }
     </script>
+
 </div>

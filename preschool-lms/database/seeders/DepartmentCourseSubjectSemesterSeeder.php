@@ -157,10 +157,14 @@ class DepartmentCourseSubjectSemesterSeeder extends Seeder
         foreach ($students as $student) {
             $gradeCode = $student->grade_level_code ?? 'grade_1';
             $gradeLevel = GradeLevel::where('code', $gradeCode)->first();
-            if (!$gradeLevel) continue;
+            if (!$gradeLevel) {
+                $this->command->warn("No grade level found for student {$student->id}");
+                continue;
+            }
 
             // Assign a random section
             $section = $gradeLevel->sections->random();
+            $this->command->info("Assigning Student {$student->id} ({$student->first_name}) to Section {$section->name}");
 
             // Create or update enrollment
             $enrollment = Enrollment::updateOrCreate(
@@ -177,22 +181,22 @@ class DepartmentCourseSubjectSemesterSeeder extends Seeder
 
             $student->update(['status' => 'enrolled']);
 
-            // Attach SubjectOfferings for this section & semester
-            $section->subjectOfferings()
+            // Get SubjectOfferings for this section & semester
+            $subjectOfferingIds = $section->subjectOfferings()
                 ->where('semester_id', $activeSemester->id)
-                ->get()
-                ->each(function ($subjectOffering) use ($enrollment) {
-                    EnrollmentSubjectOffering::updateOrCreate(
-                        [
-                            'enrollment_id' => $enrollment->id,
-                            'subject_offering_id' => $subjectOffering->id,
-                        ],
-                        [
-                            'status' => 'enrolled',
-                            'grade' => null,
-                        ]
-                    );
-                });
+                ->pluck('id'); // just IDs
+
+            $this->command->info("SubjectOfferings for section {$section->name}: " . $subjectOfferingIds->implode(', '));
+
+            // Attach via pivot table and replace existing entries to avoid duplicates
+            $syncData = $subjectOfferingIds->mapWithKeys(function ($id) {
+                return [$id => ['status' => 'enrolled', 'grade' => null]];
+            })->toArray();
+
+            $attached = $enrollment->subjectOfferings()->sync($syncData);
+            $this->command->info("Enrollment ID {$enrollment->id} synced: Attached = " . implode(', ', $attached['attached']));
+
+
 
             // 3️⃣ Fees & Payments
             $tuition = 5000;

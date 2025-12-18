@@ -46,7 +46,6 @@ class CreateEnrollmentsTable extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('enrollment_subjects'); // Drop pivot table first
         Schema::dropIfExists('enrollments');        // Then drop enrollments table
     }
 }

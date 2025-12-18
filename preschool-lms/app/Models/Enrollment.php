@@ -37,10 +37,8 @@ class Enrollment extends Model
         return $this->hasMany(EnrollmentSubjectOffering::class);
     }
 
-    /**
-     * A convenience relationship to get actual SubjectOffering models
-     * through the pivot table
-     */
+
+
     public function subjectOfferings()
     {
         return $this->belongsToMany(
@@ -48,7 +46,8 @@ class Enrollment extends Model
             'enrollment_subject_offering',
             'enrollment_id',
             'subject_offering_id'
-        );
+        )->withPivot('status', 'grade')
+            ->withTimestamps();
     }
 
     /** Fees & Payments */
@@ -87,15 +86,18 @@ class Enrollment extends Model
 
     public function getGradeLevelTextAttribute()
     {
-        if (!$this->grade_level) return null;
+        if (!$this->gradeLevel) return null;
 
-        if (str_starts_with($this->grade_level, 'grade_')) {
-            $num = str_replace('grade_', '', $this->grade_level);
+        $name = $this->gradeLevel->name;
+
+        if (str_starts_with($name, 'grade_')) {
+            $num = str_replace('grade_', '', $name);
             return 'Grade ' . ucfirst($num);
         }
 
-        return ucfirst($this->grade_level);
+        return ucfirst($name);
     }
+
 
     public function getCategoryTextAttribute()
     {

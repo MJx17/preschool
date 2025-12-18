@@ -94,7 +94,7 @@
                     </div>
 
                     <!-- SUBJECT OFFERINGS TABLE -->
-                    @if($enrollment->subjectOfferings->isNotEmpty())
+                    @if($subjectOfferings->isNotEmpty())
                     <table class="w-full border-collapse border border-gray-300 dark:border-gray-600">
                         <thead class="bg-gray-200 dark:bg-gray-700">
                             <tr>
@@ -106,26 +106,25 @@
                                 <th class="border px-4 py-2 text-left">Teacher</th>
                             </tr>
                         </thead>
-
                         <tbody>
-                            @foreach ($enrollment->subjectOfferings as $offering)
+                            @foreach($subjectOfferings as $pivot)
+                            @php $offering = $pivot->subjectOffering; @endphp
                             <tr>
                                 <td class="border px-4 py-2">{{ $offering->subject->code ?? 'N/A' }}</td>
                                 <td class="border px-4 py-2">{{ $offering->subject->units ?? 'N/A' }}</td>
                                 <td class="border px-4 py-2">{{ $offering->formatted_days ?? 'N/A' }}</td>
                                 <td class="border px-4 py-2">{{ $offering->class_time ?? 'N/A' }}</td>
                                 <td class="border px-4 py-2">{{ $offering->room ?? 'N/A' }}</td>
-                                <td class="border px-4 py-2">
-                                    {{ $offering->teacher->fullname ?? 'N/A' }}
-                                </td>
+                                <td class="border px-4 py-2">{{ $offering->teacher->fullname ?? 'N/A' }}</td>
                             </tr>
                             @endforeach
                         </tbody>
                     </table>
-
                     @else
                     <p class="text-gray-500 dark:text-gray-400">No subjects enrolled.</p>
                     @endif
+                    
+
                 </div>
 
 

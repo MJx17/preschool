@@ -29,18 +29,37 @@ class EnrollmentController extends Controller
         $semesterId = $request->get('semester_id');
 
         if (!$semesterId) {
-            $activeSemester = Semester::where('status', 'active')->first();
-            $semesterId = $activeSemester->id ?? null;
+            $semesterId = Semester::where('status', 'active')->value('id');
         }
 
         $semesters = Semester::orderBy('start_date', 'desc')->get();
 
-        $enrollments = Enrollment::with(['student', 'semester'])
-            ->when($semesterId, fn($query) => $query->where('semester_id', $semesterId))
-            ->paginate(15);
+        // Flat list of enrollments
+        $enrollments = Enrollment::with([
+            'student',
+            'semester',
+            'gradeLevel',
+            'section',
+            'section.subjectOfferings' => function ($q) use ($semesterId) {
+                $q->where('semester_id', $semesterId);
+            },
+            'section.subjectOfferings.subject',
+            'section.subjectOfferings.teacher',
+            'section.subjectOfferings.semester',
+        ])
+            ->when($semesterId, fn($q) => $q->where('semester_id', $semesterId))
+            ->paginate(15); // <-- pagination
 
-        return view('enrollments.index', compact('enrollments', 'semesters', 'semesterId'));
+
+        return view('enrollments.index', compact(
+            'enrollments',
+            'semesters',
+            'semesterId'
+        ));
     }
+
+
+
 
     public function create(Request $request)
     {
@@ -290,9 +309,129 @@ class EnrollmentController extends Controller
 
 
 
+    // public function fees($id)
+    // {
+    //     $enrollment = Enrollment::with(['student', 'subjectOfferings', 'fees', 'fees.payments', 'financialInformation'])->findOrFail($id);
+
+
+    //     $user = auth()->user(); // Get the logged-in user
+    //     $student = $enrollment->student;
+    //     // Ensure the user is a teacher and can only access their own profile
+    //     if ($user->hasRole('student') && optional($user->student)->id !== $student->id) {
+    //         abort(403, 'Unauthorized access');
+    //     }
+
+    //     // Initialize variables
+    //     $totalFees = 0;
+    //     $remainingBalance = 0;
+    //     $installmentAmount = 0;
+    //     $overallStatus = 'Paid';
+    //     $balance = 0; // Sum of all fees minus discounts and initial payment
+    //     $remainingPayment = 0;
+    //     $payment = null;
+
+    //     if ($enrollment->fees && $enrollment->fees->payments) {
+    //         $payment = $enrollment->fees->payments;
+
+    //         // Fees calculation
+    //         $tuitionFee = $enrollment->fees->tuition_fee ?? 0;
+    //         $labFee = $enrollment->fees->lab_fee ?? 0;
+    //         $miscFee = $enrollment->fees->miscellaneous_fee ?? 0;
+    //         $otherFee = $enrollment->fees->other_fee ?? 0;
+    //         $discount = $enrollment->fees->discount ?? 0;
+    //         $initialPayment = $enrollment->fees->initial_payment ?? 0;
+
+    //         // Step 1: Calculate the total fees (sum of all fees)
+    //         $totalFees = $tuitionFee + $labFee + $miscFee + $otherFee;
+
+    //         // Step 2: Calculate the balance after discount and initial payment
+    //         $balance = $totalFees - $discount - $initialPayment;
+
+    //         // Step 3: Initialize remainingBalance to the balance
+    //         $remainingBalance = $balance;
+
+    //         // Deduct payments made only for installments marked as 'Paid'
+    //         if ($payment->prelims_paid) {
+    //             $remainingBalance -= $payment->prelims_payment;
+    //         }
+    //         if ($payment->midterms_paid) {
+    //             $remainingBalance -= $payment->midterms_payment;
+    //         }
+    //         if ($payment->pre_final_paid) {
+    //             $remainingBalance -= $payment->pre_final_payment;
+    //         }
+    //         if ($payment->final_paid) {
+    //             $remainingBalance -= $payment->final_payment;
+    //         }
+
+    //         // Ensure no negative remaining balance
+    //         $remainingBalance = max($remainingBalance, 0);
+
+    //         // Step 4: Calculate installment amount (remaining balance divided by 4)
+    //         $installmentAmount = $remainingBalance / 4;
+
+    //         // Overall status calculation (whether all payments are made)
+    //         if (!$payment->prelims_paid || !$payment->midterms_paid || !$payment->pre_final_paid || !$payment->final_paid) {
+    //             $overallStatus = 'Pending';
+    //         }
+    //     }
+
+    //     // Return the view with the necessary data
+    //     return view('enrollments.fees', compact('enrollment', 'totalFees', 'balance', 'installmentAmount', 'payment', 'remainingBalance', 'overallStatus'));
+    // }
+
+    // public function edit($id)
+    // {
+    //     $enrollment = Enrollment::with([
+    //         'student',
+    //         'section',
+    //         'gradeLevel',
+    //         'fees',
+    //         'financialInformation',
+    //         'enrollmentSubjectOfferings',
+    //     ])->findOrFail($id);
+
+    //     $students = Student::orderBy('surname')->get();
+    //     $gradeLevels = GradeLevel::orderBy('name')->get();
+    //     $activeSemester = Semester::where('status', 'active')->first();
+
+    //     // For consistency with create, don't preload sections
+    //     $sections = collect();
+
+    //     $selectedGradeLevelId = old('grade_level_id') ?? null;
+
+    //     // Variables required by the Blade (for consistency)
+    //     $fee = $enrollment->fees;
+    //     $financialData = $enrollment->financialInformation ?? null;
+    //     $selectedSubjects = $enrollment->enrollmentSubjectOfferings->pluck('subject_offering_id')->toArray();
+
+    //     return view('enrollments.edit', compact(
+    //         'enrollment',
+    //         'students',
+    //         'gradeLevels',
+    //         'activeSemester',
+    //         'sections',             // empty for now
+    //         'selectedGradeLevelId',
+    //         'fee',
+    //         'financialData',
+    //         'selectedSubjects'
+    //     ));
+    // }
+
     public function fees($id)
     {
-        $enrollment = Enrollment::with(['student', 'subjectOfferings', 'fees', 'fees.payments', 'financialInformation'])->findOrFail($id);
+        $enrollment = Enrollment::with([
+            'student',
+            'fees',
+            'fees.payments',
+            'financialInformation'
+        ])->findOrFail($id);
+
+        // Fetch the subjects via the pivot table
+        $subjectOfferings = EnrollmentSubjectOffering::with([
+            'subjectOffering.subject',
+            'subjectOffering.teacher'
+        ])->where('enrollment_id', $enrollment->id)->get();
 
 
         $user = auth()->user(); // Get the logged-in user
@@ -358,7 +497,7 @@ class EnrollmentController extends Controller
         }
 
         // Return the view with the necessary data
-        return view('enrollments.fees', compact('enrollment', 'totalFees', 'balance', 'installmentAmount', 'payment', 'remainingBalance', 'overallStatus'));
+        return view('enrollments.fees', compact('enrollment', 'subjectOfferings','totalFees', 'balance', 'installmentAmount', 'payment', 'remainingBalance', 'overallStatus'));
     }
 
     public function edit($id)
@@ -398,8 +537,6 @@ class EnrollmentController extends Controller
             'selectedSubjects'
         ));
     }
-
-
 
 
 

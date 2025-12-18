@@ -18,10 +18,12 @@ return new class extends Migration
             $table->decimal('grade', 5, 2)->nullable();
             $table->enum('status', ['enrolled', 'dropped', 'completed'])->default('enrolled');
             $table->timestamps();
+
+            // Prevent duplicates at DB level
+            $table->unique(['enrollment_id', 'subject_offering_id']);
         });
-        
     }
-    
+
 
     /**
      * Reverse the migrations.
